@@ -6,363 +6,953 @@
     <title>Match Admin - Live Score</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/data.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+
+        :root {
+            --emerald: #10b981;
+            --emerald-glow: rgba(16,185,129,0.25);
+        }
+
+        body { background: #0a0f1a; }
+
+        /* Animated gradient header */
+        .admin-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            border-bottom: 1px solid rgba(16,185,129,0.15);
+        }
+
+        /* Panel card */
+        .match-panel {
+            background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .match-panel:hover {
+            border-color: rgba(16,185,129,0.3);
+            box-shadow: 0 0 24px rgba(16,185,129,0.08);
+        }
+        .match-panel.finished {
+            border-color: rgba(16,185,129,0.6);
+            box-shadow: 0 0 20px rgba(16,185,129,0.15);
+        }
+
+        /* Score display */
+        .score-display {
+            font-variant-numeric: tabular-nums;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #10b981;
+            line-height: 1;
+            min-width: 2.5rem;
+            text-align: center;
+            transition: color 0.2s;
+        }
+        .score-display.winner-score { color: #fff; text-shadow: 0 0 20px rgba(16,185,129,0.8); }
+        .score-display.loser-score  { color: #475569; }
+
+        /* Score buttons */
+        .score-btn {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.1s, background 0.2s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .score-btn:active { transform: scale(0.88); }
+        .score-btn.plus  { background: #059669; color: #fff; }
+        .score-btn.plus:hover { background: #10b981; }
+        .score-btn.minus { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+        .score-btn.minus:hover { background: #334155; color: #e2e8f0; }
+
+        /* Remove button */
+        .remove-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            line-height: 1;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .remove-btn:hover { background: #7f1d1d; border-color: #ef4444; color: #fca5a5; }
+
+        /* Add panel button */
+        .add-btn {
+            background: linear-gradient(90deg, #059669, #10b981);
+            color: #fff;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 0 0 transparent;
+            white-space: nowrap;
+        }
+        .add-btn:hover  { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(16,185,129,0.35); }
+        .add-btn:active { transform: scale(0.97); }
+        .add-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Select styling */
+        .admin-select {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            border-radius: 0.65rem;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.9rem;
+            outline: none;
+            width: 100%;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .admin-select:focus { border-color: #10b981; }
+
+        /* Save status badge */
+        .save-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: #1e293b;
+            color: #475569;
+            letter-spacing: 0.01em;
+            transition: background 0.3s, color 0.3s;
+            white-space: nowrap;
+        }
+        .save-badge.saving  { background: #422006; color: #fbbf24; animation: pulse 1s ease-in-out infinite; }
+        .save-badge.saved   { background: #064e3b; color: #34d399; }
+        .save-badge.error   { background: #420000; color: #f87171; }
+
+        @keyframes pulse {
+            0%, 100% { opacity:1; }
+            50% { opacity:0.6; }
+        }
+
+
+        /* ── Live Broadcast Toggle ──────────────────────────────── */
+        .live-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            cursor: pointer;
+            user-select: none;
+            border: none;
+            padding: 0.3rem 0.65rem 0.3rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(100,116,139,0.1);
+            border: 1px solid rgba(100,116,139,0.25);
+            transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+        .live-toggle.on {
+            background: rgba(239,68,68,0.12);
+            border-color: rgba(239,68,68,0.4);
+            box-shadow: 0 0 12px rgba(239,68,68,0.2);
+        }
+        .live-toggle-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.1rem;
+            height: 1.1rem;
+            border-radius: 50%;
+            background: #334155;
+            transition: background 0.25s;
+            flex-shrink: 0;
+        }
+        .live-toggle.on .live-toggle-icon {
+            background: #ef4444;
+            box-shadow: 0 0 6px rgba(239,68,68,0.6);
+        }
+        .live-toggle-icon svg { display: block; }
+        .live-toggle-text {
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #475569;
+            transition: color 0.25s;
+        }
+        .live-toggle.on .live-toggle-text { color: #ef4444; }
+        /* Air-wave rings animation when ON */
+        .live-toggle-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            border: 1px solid rgba(239,68,68,0.5);
+            opacity: 0;
+        }
+        .live-toggle.on .live-toggle-ring {
+            animation: lvring 1.8s ease-out infinite;
+        }
+        @keyframes lvring {
+            0%   { transform: scale(1);   opacity: 0.6; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* ── Billiard Ball Table Chip ────────────────────────────── */
+        .ball-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .ball-chip {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1rem;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 3px 10px rgba(0,0,0,0.5),
+                inset 0 -3px 5px rgba(0,0,0,0.25),
+                inset 2px 2px 5px rgba(255,255,255,0.18);
+            flex-shrink: 0;
+            cursor: default;
+        }
+        /* Shine highlight */
+        .ball-chip::after {
+            content: '';
+            position: absolute;
+            top: 12%;
+            left: 17%;
+            width: 28%;
+            height: 22%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, transparent 100%);
+            border-radius: 50%;
+            transform: rotate(-35deg);
+            pointer-events: none;
+        }
+        /* Stripe band (balls 9-12) */
+        .ball-chip.stripe::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                transparent 26%,
+                rgba(255,255,255,0.92) 26%,
+                rgba(255,255,255,0.92) 74%,
+                transparent 74%
+            );
+            z-index: 0;
+        }
+        .ball-chip span {
+            position: relative;
+            z-index: 1;
+        }
+        .ball-chip.stripe span {
+            /* number shown over stripe needs dark text */
+            mix-blend-mode: normal;
+        }
+        .ball-label {
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #475569;
+        }
+
+
+        /* Race progress bar */
+        .race-bar-track {
+            height: 3px;
+            background: #1e293b;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .race-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #059669, #10b981);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Finished overlay badge */
+        .finished-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: #10b981;
+            color: #022c22;
+            font-weight: 800;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        /* Empty state */
+        .empty-state {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 4rem 2rem;
+            color: #475569;
+        }
+
+        /* Responsive grid */
+        #panels-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+        @media (min-width: 640px)  { #panels-grid { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 1024px) { #panels-grid { grid-template-columns: 1fr 1fr 1fr; } }
+        @media (min-width: 1280px) { #panels-grid { grid-template-columns: repeat(4, 1fr); } }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-200 min-h-screen p-4 sm:p-8 font-sans">
-    
-    <div class="max-w-4xl mx-auto">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-slate-700">
-            <h1 class="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
-                <span class="bg-emerald-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.5)]">8</span>
-                Live Admin Tool
-            </h1>
-            <a href="/" class="text-slate-400 hover:text-emerald-400 transition-colors text-sm font-medium flex items-center gap-1">
-                &larr; Back to Tournament
-            </a>
-        </div>
+<body class="text-slate-200 min-h-screen">
 
-        <!-- Filters -->
-        <div class="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-slate-400 mb-2">Select Date</label>
-                <select id="date-filter" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 shadow-sm text-base sm:text-lg cursor-pointer transition-colors">
-                    <!-- Populated via JS -->
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-400 mb-2">Select Time</label>
-                <select id="time-filter" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 shadow-sm text-base sm:text-lg cursor-pointer transition-colors">
-                    <!-- Populated via JS -->
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-slate-400 mb-2">Select Active Match</label>
-                <select id="match-selector" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm text-base sm:text-lg cursor-pointer transition-colors">
-                    <option value="">-- Choose a Match to manage --</option>
-                    <!-- Populated via JS -->
-                </select>
-            </div>
-        </div>
+    <!-- Header / Add Match Bar -->
+    <div class="admin-header sticky top-0 z-50 px-4 py-3 sm:px-6">
+        <div class="max-w-screen-2xl mx-auto flex flex-col gap-3">
 
-        <!-- Dashboard panel, hidden initially -->
-        <div id="match-dashboard" class="hidden bg-slate-800/40 border border-slate-700 rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
-            <!-- Background Decoration -->
-            <div class="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
-                <svg class="w-96 h-96 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+            <!-- Title row -->
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-full bg-emerald-500 text-slate-900 flex items-center justify-center font-black text-base shadow-[0_0_14px_rgba(16,185,129,0.5)]">8</span>
+                    Live Admin Board
+                </h1>
+                <a href="/" class="text-slate-500 hover:text-emerald-400 transition-colors text-sm flex items-center gap-1">
+                    ← Back to Tournament
+                </a>
+            </div>
+
+            <!-- Filter + Add row -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+
+                <div class="flex flex-col gap-1 min-w-0">
+                    <label class="text-xs font-medium text-slate-500 uppercase tracking-wider">Date</label>
+                    <select id="date-filter" class="admin-select"></select>
+                </div>
+
+                <div class="flex flex-col gap-1 min-w-0">
+                    <label class="text-xs font-medium text-slate-500 uppercase tracking-wider">Time</label>
+                    <select id="time-filter" class="admin-select"></select>
+                </div>
+
+                <div class="flex flex-col gap-1 flex-1 min-w-0">
+                    <label class="text-xs font-medium text-slate-500 uppercase tracking-wider">Match</label>
+                    <select id="match-selector" class="admin-select">
+                        <option value="">-- Select a match --</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1" style="min-width:110px">
+                    <label class="text-xs font-medium text-slate-500 uppercase tracking-wider">Table</label>
+                    <select id="table-selector" class="admin-select">
+                        <option value="">-- Table --</option>
+                        <option value="1">Table 1</option>
+                        <option value="2">Table 2</option>
+                        <option value="3">Table 3</option>
+                        <option value="4">Table 4</option>
+                        <option value="5">Table 5</option>
+                        <option value="6">Table 6</option>
+                        <option value="7">Table 7</option>
+                        <option value="8">Table 8</option>
+                        <option value="9">Table 9</option>
+                        <option value="10">Table 10</option>
+                        <option value="11">Table 11</option>
+                        <option value="12">Table 12</option>
+                    </select>
+                </div>
+
+                <button id="add-match-btn" class="add-btn" onclick="addSelectedMatch()" disabled>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Match
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Panels Grid -->
+    <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 py-5">
+        <div id="panels-grid">
+            <!-- Empty state shown by default -->
+            <div id="empty-state" class="empty-state">
+                <svg width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24" class="opacity-30">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
                 </svg>
-            </div>
-
-            <div class="text-center mb-10 relative z-10">
-                <h2 id="match-label" class="text-emerald-400 font-bold text-xl sm:text-2xl uppercase tracking-wider mb-2">Match 1</h2>
-                <div class="inline-block bg-slate-700/50 px-4 py-1 rounded-full border border-slate-600">
-                    <p id="race-label" class="text-slate-300 font-semibold text-sm">Race to 5</p>
-                </div>
-                <div id="winner-banner" class="mt-4 hidden animate-pulse">
-                    <span class="bg-emerald-500 text-slate-900 font-black px-6 py-2 rounded-lg text-lg sm:text-xl uppercase shadow-lg border-2 border-emerald-400">Match Finished</span>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8 items-center relative z-10">
-                
-                <!-- Player 1 Card -->
-                <div class="bg-slate-900/80 rounded-xl p-6 border border-slate-700 shadow-inner flex flex-col items-center">
-                    <h3 id="p1-name" class="text-lg sm:text-xl font-bold text-white mb-6 text-center min-h-[56px] flex items-center justify-center w-full leading-tight">Player 1</h3>
-                    
-                    <div class="flex items-center gap-4 sm:gap-6 mb-2">
-                        <button onclick="changeScore(1, -1)" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
-                            -
-                        </button>
-                        <div id="p1-score" class="text-6xl sm:text-8xl font-black text-emerald-400 w-24 text-center select-none font-mono">
-                            0
-                        </div>
-                        <button onclick="changeScore(1, 1)" class="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-                <!-- VS Badge (desktop) / Divider (mobile) -->
-                <div class="flex justify-center items-center">
-                    <div class="w-12 h-12 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 font-black text-sm uppercase z-10 shadow-lg">
-                        VS
-                    </div>
-                </div>
-
-                <!-- Player 2 Card -->
-                <div class="bg-slate-900/80 rounded-xl p-6 border border-slate-700 shadow-inner flex flex-col items-center">
-                    <h3 id="p2-name" class="text-lg sm:text-xl font-bold text-white mb-6 text-center min-h-[56px] flex items-center justify-center w-full leading-tight">Player 2</h3>
-                    
-                    <div class="flex items-center gap-4 sm:gap-6 mb-2">
-                        <button onclick="changeScore(2, -1)" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
-                            -
-                        </button>
-                        <div id="p2-score" class="text-6xl sm:text-8xl font-black text-emerald-400 w-24 text-center select-none font-mono">
-                            0
-                        </div>
-                        <button onclick="changeScore(2, 1)" class="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
-                            +
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Auto-save tracker -->
-            <div class="mt-10 text-center text-sm font-medium bg-slate-900/50 py-3 rounded-lg border border-slate-700/50 max-w-sm mx-auto">
-                <span id="save-status" class="text-slate-500">Awaiting score updates...</span>
+                <p class="text-lg font-semibold">No active matches</p>
+                <p class="text-sm text-slate-600 text-center max-w-xs">Use the filters above to select a match and click <strong class="text-slate-400">Add Match</strong> to start managing it.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Combine data structures exported from data.js
-        const allMatches = [
-            ...(typeof groupMatchData !== 'undefined' ? groupMatchData : []),
-            ...(typeof matchData !== 'undefined' ? matchData : [])
-        ];
+    // ──────────────────────────────────────────────────────────────────────────
+    // Data
+    // ──────────────────────────────────────────────────────────────────────────
+    const allMatches = [
+        ...(typeof groupMatchData !== 'undefined' ? groupMatchData : []),
+        ...(typeof matchData     !== 'undefined' ? matchData     : [])
+    ];
 
-        let currentScores = {};
-        let activeMatch = null;
-        let p1Score = 0;
-        let p2Score = 0;
-        let raceTo = 5;
+    let currentScores   = {};
+    let knockoutMapping = {};
+    // panels: Map<matchId, { p1, p2, p1Score, p2Score, raceTo, matchObj }>
+    const panels = new Map();
 
-        // Elements
-        const selector = document.getElementById('match-selector');
-        const dashboard = document.getElementById('match-dashboard');
-        const labelEl = document.getElementById('match-label');
-        const raceEl = document.getElementById('race-label');
-        const p1NameEl = document.getElementById('p1-name');
-        const p2NameEl = document.getElementById('p2-name');
-        const p1ScoreEl = document.getElementById('p1-score');
-        const p2ScoreEl = document.getElementById('p2-score');
-        const statusEl = document.getElementById('save-status');
-        const winnerBanner = document.getElementById('winner-banner');
+    // ── Resolve placeholder → real name ──────────────────────────────────────
+    function resolveName(raw) {
+        return knockoutMapping[raw] || raw;
+    }
 
-        const dateFilter = document.getElementById('date-filter');
-        const timeFilter = document.getElementById('time-filter');
+    // ── Build mapping from live score data ───────────────────────────────────
+    function buildKnockoutMapping(scores) {
+        knockoutMapping = {};
 
-        // Extract and sort unique dates
-        const uniqueDates = [...new Set(allMatches.map(m => m.date || (m.time ? m.time.split(' ')[0] : '')))].filter(Boolean);
-        
-        // Populate Date Filter
-        uniqueDates.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d;
-            opt.textContent = `Date: ${d}`;
-            dateFilter.appendChild(opt);
+        // Step 1: group standings
+        const groups = {};
+        for (let i = 0; i < 16; i++) groups[String.fromCharCode(65 + i)] = [];
+
+        const gMatches = typeof groupMatchData !== 'undefined' ? groupMatchData : [];
+        gMatches.forEach(m => {
+            if (!scores[m.id] || !scores[m.id].score) return;
+            const parts = scores[m.id].score.split('-');
+            if (parts.length !== 2) return;
+            const s1 = parseInt(parts[0]) || 0;
+            const s2 = parseInt(parts[1]) || 0;
+            [m.p1, m.p2].forEach((rawName, idx) => {
+                const name = rawName.split(' - ').pop();
+                if (typeof playerGroupIDs === 'undefined') return;
+                const gid = playerGroupIDs[name];
+                if (!gid) return;
+                const grp = gid.charAt(0);
+                if (!groups[grp]) return;
+                const my = idx === 0 ? s1 : s2, opp = idx === 0 ? s2 : s1;
+                const won = my > opp ? 1 : 0;
+                const ex = groups[grp].find(p => p.name === name);
+                if (ex) { ex.played++; ex.won += won; ex.lost += 1-won; ex.fw += my; ex.fl += opp; ex.pts += won ? 3 : 0; }
+                else groups[grp].push({ name, played:1, won, lost:1-won, fw:my, fl:opp, pts: won ? 3 : 0 });
+            });
+        });
+        Object.keys(groups).forEach(g => {
+            const s = groups[g].sort((a,b) => b.pts-a.pts || (b.fw-b.fl)-(a.fw-a.fl) || b.fw-a.fw);
+            if (s[0]) knockoutMapping[`1st Group ${g}`] = s[0].name;
+            if (s[1]) knockoutMapping[`2nd Group ${g}`] = s[1].name;
         });
 
-        // Set Date to Today if available (e.g., "01-Apr")
-        const today = new Date();
-        const todayStr = String(today.getDate()).padStart(2, '0') + '-' + today.toLocaleString('en-US', {month: 'short'});
-        if(uniqueDates.includes(todayStr)) {
-            dateFilter.value = todayStr;
-        } else if(uniqueDates.length > 0) {
-            dateFilter.value = uniqueDates[0];
-        }
-
-        // Populate Times Dropdown based on Date
-        function populateTimes() {
-            timeFilter.innerHTML = '';
-            const selectedDate = dateFilter.value;
-            
-            const dateMatches = allMatches.filter(m => {
-                const mDate = m.date || (m.time ? m.time.split(' ')[0] : '');
-                return mDate === selectedDate;
-            });
-            
-            const uniqueTimes = [...new Set(dateMatches.map(m => m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || '')))].filter(Boolean);
-            uniqueTimes.sort(); // Sort times ascending
-            
-            if(uniqueTimes.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = "";
-                opt.textContent = "-- No scheduled times --";
-                timeFilter.appendChild(opt);
-            } else {
-                uniqueTimes.forEach(t => {
-                    const opt = document.createElement('option');
-                    opt.value = t;
-                    opt.textContent = `Time: ${t}`;
-                    timeFilter.appendChild(opt);
-                });
+        // Step 2: knockout round winners
+        const kMatches = typeof matchData !== 'undefined' ? matchData : [];
+        kMatches.forEach(m => {
+            if (scores[m.id] && scores[m.id].winner) {
+                knockoutMapping[`Winner ${m.id}`] = knockoutMapping[scores[m.id].winner] || scores[m.id].winner;
             }
-            
-            // Waterfall to matches dropdown
-            populateMatches();
-        }
+        });
+    }
 
-        // Initialize/Update Dropdown
-        function populateMatches() {
-            selector.innerHTML = '<option value="">-- Choose a Match to manage --</option>';
-            const selectedDate = dateFilter.value;
-            const selectedTime = timeFilter.value;
-            
-            const filteredMatches = allMatches.filter(m => {
-                const mDate = m.date || (m.time ? m.time.split(' ')[0] : '');
-                const mTime = m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || '');
-                return mDate === selectedDate && mTime === selectedTime;
-            });
-            
-            filteredMatches.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                
-                // Clean names (remove "A5 - " prefixes if present)
-                const p1Clean = m.p1.split(' - ').pop();
-                const p2Clean = m.p2.split(' - ').pop();
-                
-                // For group matches, list the table number for extra help
-                let label = m.round === "GRP" ? `Match ${m.id} (Table ${m.table || '?'})` : m.id;
-                label += ` | ${p1Clean} vs ${p2Clean}`;
-                opt.textContent = label;
-                selector.appendChild(opt);
-            });
-            
-            // Hide dashboard if changing dates/times clears the active match
-            if(activeMatch && !filteredMatches.find(m => m.id === activeMatch.id)) {
-                dashboard.classList.add('hidden');
-                activeMatch = null;
-                selector.value = "";
+    // ──────────────────────────────────────────────────────────────────────────
+    // Dropdown setup
+    // ──────────────────────────────────────────────────────────────────────────
+    const dateFilter    = document.getElementById('date-filter');
+    const timeFilter    = document.getElementById('time-filter');
+    const matchSelector = document.getElementById('match-selector');
+    const addBtn        = document.getElementById('add-match-btn');
+
+    const uniqueDates = [...new Set(allMatches.map(m => m.date || (m.time ? m.time.split(' ')[0] : '')))].filter(Boolean);
+    uniqueDates.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d;
+        dateFilter.appendChild(o);
+    });
+
+    const today    = new Date();
+    const todayStr = String(today.getDate()).padStart(2,'0') + '-' + today.toLocaleString('en-US',{month:'short'});
+    dateFilter.value = uniqueDates.includes(todayStr) ? todayStr : (uniqueDates[0] || '');
+
+    function populateTimes() {
+        timeFilter.innerHTML = '';
+        const d = dateFilter.value;
+        const times = [...new Set(
+            allMatches
+                .filter(m => (m.date || (m.time ? m.time.split(' ')[0] : '')) === d)
+                .map(m => m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || ''))
+        )].filter(Boolean).sort();
+        times.forEach(t => {
+            const o = document.createElement('option');
+            o.value = t; o.textContent = t;
+            timeFilter.appendChild(o);
+        });
+        if (!times.length) timeFilter.innerHTML = '<option value="">-- No times --</option>';
+        populateMatchSelector();
+    }
+
+    function populateMatchSelector() {
+        matchSelector.innerHTML = '<option value="">-- Select a match --</option>';
+        addBtn.disabled = true;
+        const d = dateFilter.value, t = timeFilter.value;
+        const filtered = allMatches.filter(m => {
+            const mDate = m.date || (m.time ? m.time.split(' ')[0] : '');
+            const mTime = m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || '');
+            return mDate === d && mTime === t;
+        });
+        filtered.forEach(m => {
+            const p1 = resolveName(m.p1.split(' - ').pop());
+            const p2 = resolveName(m.p2.split(' - ').pop());
+            const label = m.round === 'GRP'
+                ? `Match ${m.id} (T${m.table || '?'}) | ${p1} vs ${p2}`
+                : `${m.id} | ${p1} vs ${p2}`;
+            const o = document.createElement('option');
+            o.value = m.id;
+            // Gray out already-added matches
+            if (panels.has(m.id)) { o.textContent = '✓ ' + label; o.disabled = true; }
+            else o.textContent = label;
+            matchSelector.appendChild(o);
+        });
+    }
+
+    const tableSelector = document.getElementById('table-selector');
+
+    function checkAddReady() {
+        addBtn.disabled = !matchSelector.value || panels.has(matchSelector.value);
+    }
+    matchSelector.addEventListener('change', checkAddReady);
+    tableSelector.addEventListener('change', checkAddReady);
+    dateFilter.addEventListener('change', populateTimes);
+    timeFilter.addEventListener('change', populateMatchSelector);
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Panel management
+    // ──────────────────────────────────────────────────────────────────────────
+    const grid      = document.getElementById('panels-grid');
+    const emptyState = document.getElementById('empty-state');
+
+    function getRaceTo(m) {
+        if (m.round === 'GRP') return 5;
+        if (m.id.startsWith('F'))  return 9;
+        return 7;
+    }
+
+    // Core logic — add a panel by match ID and optional tableNum override.
+    // Used both by the UI flow (addSelectedMatch) and by the auto-load on init.
+    function addMatchById(mId, tableNum) {
+        if (!mId || panels.has(mId)) return;
+        const matchObj = allMatches.find(m => m.id === mId);
+        if (!matchObj) return;
+
+        const raceTo = getRaceTo(matchObj);
+        let p1Score = 0, p2Score = 0;
+        let showLive = false;
+        // tableNum: use provided value, otherwise fall back to whatever is saved in KV
+        const resolvedTable = tableNum != null ? tableNum : (currentScores[mId] && currentScores[mId].tableNum) || null;
+
+        if (currentScores[mId] && currentScores[mId].score) {
+            const parts = currentScores[mId].score.split('-');
+            if (parts.length === 2) { p1Score = parseInt(parts[0]) || 0; p2Score = parseInt(parts[1]) || 0; }
+        }
+        if (currentScores[mId] && currentScores[mId].showLive) showLive = true;
+
+        const p1Name = resolveName(matchObj.p1.split(' - ').pop());
+        const p2Name = resolveName(matchObj.p2.split(' - ').pop());
+
+        panels.set(mId, { matchObj, p1Name, p2Name, p1Score, p2Score, raceTo, tableNum: resolvedTable, showLive, saveTimeout: null });
+
+        renderPanel(mId);
+        updateEmptyState();
+        populateMatchSelector();
+        sortPanels();
+    }
+
+    function addSelectedMatch() {
+        const mId = matchSelector.value;
+        if (!mId || panels.has(mId)) return;
+        const tableNum = tableSelector.value || null;
+        addMatchById(mId, tableNum);
+        matchSelector.value = '';
+        addBtn.disabled = true;
+    }
+    window.addSelectedMatch = addSelectedMatch;
+
+    function removePanel(mId) {
+        panels.delete(mId);
+        const el = document.getElementById(`panel-${mId}`);
+        if (el) {
+            el.style.transition = 'opacity 0.2s, transform 0.2s';
+            el.style.opacity = '0';
+            el.style.transform = 'scale(0.95)';
+            setTimeout(() => { el.remove(); updateEmptyState(); }, 200);
+        }
+        populateMatchSelector();
+    }
+    window.removePanel = removePanel;
+
+    function updateEmptyState() {
+        if (panels.size === 0) {
+            if (!document.getElementById('empty-state')) {
+                grid.appendChild(emptyState);
             }
+        } else {
+            if (emptyState.parentNode === grid) grid.removeChild(emptyState);
         }
+    }
 
-        dateFilter.addEventListener('change', populateTimes);
-        timeFilter.addEventListener('change', populateMatches);
-        
+    // ── Billiard ball helper ─────────────────────────────────────────────────
+    const BALL_COLORS = {
+        1:  { bg: '#D4A017', text: '#1a1a1a' },
+        2:  { bg: '#1565C0', text: '#fff' },
+        3:  { bg: '#B71C1C', text: '#fff' },
+        4:  { bg: '#4A148C', text: '#fff' },
+        5:  { bg: '#E65100', text: '#fff' },
+        6:  { bg: '#1B5E20', text: '#fff' },
+        7:  { bg: '#880E1F', text: '#fff' },
+        8:  { bg: '#0d0d0d', text: '#fff' },
+        9:  { bg: '#D4A017', text: '#1a1a1a', stripe: true },
+        10: { bg: '#1565C0', text: '#fff',   stripe: true },
+        11: { bg: '#B71C1C', text: '#fff',   stripe: true },
+        12: { bg: '#4A148C', text: '#fff',   stripe: true },
+    };
+    function ballChipHtml(tableNum, small = false) {
+        if (!tableNum) return '';
+        const n = parseInt(tableNum);
+        const c = BALL_COLORS[n] || { bg: '#334155', text: '#fff' };
+        const sz = small ? '2.4rem' : '3rem';
+        const fs = small ? '0.85rem' : '1rem';
+        const stripeStyle = c.stripe
+            ? `background:linear-gradient(to bottom,${c.bg} 26%,rgba(255,255,255,0.92) 26%,rgba(255,255,255,0.92) 74%,${c.bg} 74%);`
+            : `background:${c.bg};`;
+        return `
+        <div class="ball-wrap">
+            <div class="ball-chip${c.stripe ? ' stripe' : ''}" style="${stripeStyle}width:${sz};height:${sz};color:${c.text};font-size:${fs};box-shadow:0 3px 10px rgba(0,0,0,0.5),inset 0 -3px 5px rgba(0,0,0,0.25),inset 2px 2px 5px rgba(255,255,255,0.18);">
+                <span>${n}</span>
+            </div>
+            <span class="ball-label">Table ${n}</span>
+        </div>`;
+    }
+
+    // ── Sort grid children by tableNum ascending (null / no table → end) ────
+    function sortPanels() {
+        const children = [...grid.children].filter(el => el.dataset.mid);
+        children.sort((a, b) => {
+            const tA = panels.get(a.dataset.mid)?.tableNum;
+            const tB = panels.get(b.dataset.mid)?.tableNum;
+            const nA = tA ? parseInt(tA) : Infinity;
+            const nB = tB ? parseInt(tB) : Infinity;
+            return nA - nB;
+        });
+        children.forEach(el => grid.appendChild(el)); // re-append in sorted order
+    }
+
+
+    function renderPanel(mId) {
+        const state = panels.get(mId);
+        if (!state) return;
+        const { matchObj, p1Name, p2Name, p1Score, p2Score, raceTo, tableNum, showLive } = state;
+        const finished = p1Score >= raceTo || p2Score >= raceTo;
+        const p1Wins   = p1Score >= raceTo;
+        const p2Wins   = p2Score >= raceTo;
+
+        // Round label
+        let roundLabel = matchObj.round === 'GRP'
+            ? `Group ${matchObj.id}`
+            : matchObj.id;
+        let roundBadgeColor = matchObj.round === 'GRP' ? 'text-sky-400' : 'text-emerald-400';
+
+        const p1Pct = Math.min(100, (p1Score / raceTo) * 100);
+        const p2Pct = Math.min(100, (p2Score / raceTo) * 100);
+
+        // Billiard ball table chip
+        const tableChip = ballChipHtml(tableNum);
+
+        const panelHTML = `
+        <div class="match-panel p-4 ${finished ? 'finished' : ''}" id="panel-${CSS.escape(mId)}" data-mid="${mId}">
+
+            <!-- Remove button -->
+            <button class="remove-btn" onclick="removePanel('${mId}')" title="Remove panel">✕</button>
+
+            <!-- Panel header -->
+            <div class="flex items-center justify-between mb-2 pr-6">
+                <span class="text-xs font-bold ${roundBadgeColor} uppercase tracking-widest">${roundLabel}</span>
+                <span class="text-xs text-slate-600">${matchObj.time || ''}</span>
+            </div>
+
+            <!-- Table number chip -->
+            ${tableChip}
+
+            <!-- Finished badge -->
+            <div id="panel-finished-${mId}" class="${finished ? '' : 'hidden'} flex justify-center mb-3">
+                <span class="finished-badge">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414L9 14.414 5.293 10.707a1 1 0 011.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"/></svg>
+                    Finished
+                </span>
+            </div>
+
+            <!-- Race to label -->
+            <div class="text-center mb-3">
+                <span class="text-xs text-slate-600 font-medium">Race to <span class="text-slate-400 font-bold">${raceTo}</span></span>
+            </div>
+
+            <!-- Scoreboard -->
+            <div class="flex items-center gap-3 justify-center mb-3">
+
+                <!-- Player 1 -->
+                <div class="flex-1 flex flex-col items-center gap-2">
+                    <p class="text-sm font-bold text-center leading-tight text-slate-200 min-h-[36px] flex items-center justify-center px-1">${p1Name}</p>
+                    <div class="race-bar-track w-full">
+                        <div class="race-bar-fill" id="bar1-${mId}" style="width:${p1Pct}%"></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="score-btn minus" onclick="changeScore('${mId}', 1, -1)">−</button>
+                        <div class="score-display ${p1Wins ? 'winner-score' : (p2Wins ? 'loser-score' : '')}" id="s1-${mId}">${p1Score}</div>
+                        <button class="score-btn plus" onclick="changeScore('${mId}', 1, 1)">+</button>
+                    </div>
+                </div>
+
+                <!-- VS -->
+                <div class="flex flex-col items-center text-slate-600 font-black text-xs px-1">VS</div>
+
+                <!-- Player 2 -->
+                <div class="flex-1 flex flex-col items-center gap-2">
+                    <p class="text-sm font-bold text-center leading-tight text-slate-200 min-h-[36px] flex items-center justify-center px-1">${p2Name}</p>
+                    <div class="race-bar-track w-full">
+                        <div class="race-bar-fill" id="bar2-${mId}" style="width:${p2Pct}%"></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="score-btn minus" onclick="changeScore('${mId}', 2, -1)">−</button>
+                        <div class="score-display ${p2Wins ? 'winner-score' : (p1Wins ? 'loser-score' : '')}" id="s2-${mId}">${p2Score}</div>
+                        <button class="score-btn plus" onclick="changeScore('${mId}', 2, 1)">+</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer: save status + broadcast toggle -->
+            <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-700/50">
+                <span class="save-badge" id="status-${mId}">Waiting</span>
+                <button class="live-toggle ${showLive ? 'on' : ''}" id="lt-${mId}" onclick="toggleShowLive('${mId}')" title="Broadcast to Live Scoreboard">
+                    <span class="live-toggle-ring"></span>
+                    <span class="live-toggle-icon">
+                        <!-- signal / broadcast icon -->
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="2"/>
+                            <path d="M16.24 7.76a6 6 0 0 1 0 8.49"/>
+                            <path d="M7.76 7.76a6 6 0 0 0 0 8.49"/>
+                            <path d="M20.49 3.51a12 12 0 0 1 0 16.97"/>
+                            <path d="M3.51 3.51a12 12 0 0 0 0 16.97"/>
+                        </svg>
+                    </span>
+                    <span class="live-toggle-text" id="lbl-${mId}">LIVE</span>
+                </button>
+            </div>
+        </div>`;
+
+        // Insert before empty state or append
+        const existing = document.getElementById(`panel-${mId}`);
+        if (existing) {
+            existing.outerHTML = panelHTML;
+        } else {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = panelHTML;
+            const el = tmp.firstElementChild;
+            el.style.opacity = '0';
+            el.style.transform = 'scale(0.95)';
+            grid.appendChild(el);
+            requestAnimationFrame(() => {
+                el.style.transition = 'opacity 0.25s, transform 0.25s';
+                el.style.opacity = '1';
+                el.style.transform = 'scale(1)';
+            });
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Show Live toggle
+    // ──────────────────────────────────────────────────────────────────────────
+    async function toggleShowLive(mId) {
+        const state = panels.get(mId);
+        if (!state) return;
+        state.showLive = !state.showLive;
+
+        // Update UI immediately — the whole button is id=lt-{mId}
+        const btnEl = document.getElementById(`lt-${mId}`);
+        if (btnEl) btnEl.classList.toggle('on', state.showLive);
+
+        // Persist showLive + tableNum together so livescore can read the table
+        const statusEl = document.getElementById(`status-${mId}`);
+        if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.className = 'save-badge saving'; }
+        try {
+            const payload = { showLive: state.showLive };
+            if (state.tableNum != null) payload.tableNum = state.tableNum;
+            const resp = await fetch(`/api/scores/${mId}/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            if (!currentScores[mId]) currentScores[mId] = {};
+            Object.assign(currentScores[mId], payload);
+            if (statusEl) { statusEl.textContent = 'Saved ✓'; statusEl.className = 'save-badge saved'; }
+            setTimeout(() => {
+                if (statusEl && statusEl.textContent.includes('Saved')) {
+                    statusEl.textContent = state.showLive ? '📺 Live' : 'Live';
+                    statusEl.className = state.showLive ? 'save-badge saved' : 'save-badge';
+                }
+            }, 2000);
+        } catch (e) {
+            console.error(e);
+            state.showLive = !state.showLive; // revert on failure
+            if (track) track.classList.toggle('on', state.showLive);
+            if (label) label.classList.toggle('on', state.showLive);
+            if (statusEl) { statusEl.textContent = 'Failed!'; statusEl.className = 'save-badge error'; }
+        }
+    }
+    window.toggleShowLive = toggleShowLive;
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Score controls
+    // ──────────────────────────────────────────────────────────────────────────
+    function changeScore(mId, player, delta) {
+        const state = panels.get(mId);
+        if (!state) return;
+
+        if (player === 1) state.p1Score = Math.max(0, state.p1Score + delta);
+        else              state.p2Score = Math.max(0, state.p2Score + delta);
+
+        // Update DOM inline (no full re-render for snappiness)
+        const s1El   = document.getElementById(`s1-${mId}`);
+        const s2El   = document.getElementById(`s2-${mId}`);
+        const bar1   = document.getElementById(`bar1-${mId}`);
+        const bar2   = document.getElementById(`bar2-${mId}`);
+        const fbEl   = document.getElementById(`panel-finished-${mId}`);
+        const panelEl = document.getElementById(`panel-${mId}`);
+        if (!s1El || !s2El) return;
+
+        const { p1Score, p2Score, raceTo } = state;
+        const finished = p1Score >= raceTo || p2Score >= raceTo;
+        const p1Wins   = p1Score >= raceTo;
+        const p2Wins   = p2Score >= raceTo;
+
+        s1El.textContent = p1Score;
+        s2El.textContent = p2Score;
+        s1El.className = `score-display ${p1Wins ? 'winner-score' : (p2Wins ? 'loser-score' : '')}`;
+        s2El.className = `score-display ${p2Wins ? 'winner-score' : (p1Wins ? 'loser-score' : '')}`;
+
+        if (bar1) bar1.style.width = Math.min(100, (p1Score / raceTo) * 100) + '%';
+        if (bar2) bar2.style.width = Math.min(100, (p2Score / raceTo) * 100) + '%';
+
+        if (fbEl) fbEl.classList.toggle('hidden', !finished);
+        if (panelEl) panelEl.classList.toggle('finished', finished);
+
+        let winner = null;
+        if (p1Wins) winner = state.p1Name;
+        else if (p2Wins) winner = state.p2Name;
+        pushScore(mId, winner);
+    }
+    window.changeScore = changeScore;
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // API push
+    // ──────────────────────────────────────────────────────────────────────────
+    async function pushScore(mId, winner = null) {
+        const state = panels.get(mId);
+        if (!state) return;
+        const statusEl = document.getElementById(`status-${mId}`);
+        if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.className = 'save-badge saving'; }
+
+        const scoreStr    = `${state.p1Score}-${state.p2Score}`;
+        const finalWinner = winner || '';
+
+        try {
+            const payload = { score: scoreStr, winner: finalWinner };
+            if (state.tableNum != null) payload.tableNum = state.tableNum;
+
+            const resp = await fetch(`/api/scores/${mId}/update`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(payload)
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+            if (!currentScores[mId]) currentScores[mId] = {};
+            Object.assign(currentScores[mId], payload);
+            buildKnockoutMapping(currentScores);
+
+            if (statusEl) { statusEl.textContent = 'Saved ✓'; statusEl.className = 'save-badge saved'; }
+            if (state.saveTimeout) clearTimeout(state.saveTimeout);
+            state.saveTimeout = setTimeout(() => {
+                if (statusEl && statusEl.textContent.includes('Saved')) {
+                    statusEl.textContent = 'Live';
+                    statusEl.className = 'save-badge';
+                }
+            }, 3000);
+        } catch (e) {
+            console.error(e);
+            if (statusEl) { statusEl.textContent = 'Failed!'; statusEl.className = 'save-badge error'; }
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Keyboard: quick-access "Add match" with Enter when selector focused
+    // ──────────────────────────────────────────────────────────────────────────
+    matchSelector.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && matchSelector.value && !panels.has(matchSelector.value)) addSelectedMatch();
+    });
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Init: load scores → build mapping → populate dropdowns → auto-load live panels
+    // ──────────────────────────────────────────────────────────────────────────
+    async function init() {
+        try {
+            const res = await fetch('/api/scores');
+            if (res.ok) {
+                currentScores = await res.json();
+                buildKnockoutMapping(currentScores);
+            }
+        } catch (e) {
+            console.error('Failed to load scores', e);
+        }
         populateTimes();
 
-        // Load existing scores from backend
-        async function loadExistingScores() {
-            try {
-                const res = await fetch('/api/scores');
-                if (res.ok) {
-                    currentScores = await res.json();
-                }
-            } catch(err) {
-                console.error("Failed to fetch initial scores", err);
+        // Auto-load all matches that have showLive === true from KV
+        Object.entries(currentScores).forEach(([mId, sc]) => {
+            if (sc && sc.showLive === true) {
+                // tableNum comes from KV (sc.tableNum); no override needed
+                addMatchById(mId, null);
             }
-        }
-
-        // On Match Selection
-        selector.addEventListener('change', (e) => {
-            const mId = e.target.value;
-            if(!mId) {
-                dashboard.classList.add('hidden');
-                activeMatch = null;
-                return;
-            }
-
-            activeMatch = allMatches.find(m => m.id === mId);
-            if(!activeMatch) return;
-
-            // Determine Race To
-            if(activeMatch.round === "GRP") raceTo = 5;
-            else if(activeMatch.id.startsWith('F')) raceTo = 9;
-            else raceTo = 7; // Knockouts (R32, R16, QTR, SF)
-
-            // Find current stored score
-            p1Score = 0;
-            p2Score = 0;
-            if(currentScores[mId] && currentScores[mId].score) {
-                const parts = currentScores[mId].score.split('-');
-                if(parts.length === 2) {
-                    p1Score = parseInt(parts[0]) || 0;
-                    p2Score = parseInt(parts[1]) || 0;
-                }
-            }
-
-            // Update UI
-            p1NameEl.textContent = activeMatch.p1.split(' - ').pop();
-            p2NameEl.textContent = activeMatch.p2.split(' - ').pop();
-            labelEl.textContent = activeMatch.round === "GRP" ? `Group Stage - Match ${activeMatch.id}` : `Knockout - ${activeMatch.id}`;
-            raceEl.textContent = `Race to ${raceTo}`;
-            
-            refreshUI();
-            dashboard.classList.remove('hidden');
         });
-
-        function changeScore(playerNum, delta) {
-            if(!activeMatch) return;
-
-            if(playerNum === 1) {
-                p1Score = Math.max(0, p1Score + delta);
-            } else {
-                p2Score = Math.max(0, p2Score + delta);
-            }
-
-            refreshUI();
-
-            // Auto-check for winner
-            let declaredWinner = null;
-            if(p1Score >= raceTo) declaredWinner = p1NameEl.textContent;
-            else if(p2Score >= raceTo) declaredWinner = p2NameEl.textContent;
-
-            pushScoreUpdate(declaredWinner);
-        }
-
-        function refreshUI() {
-            p1ScoreEl.textContent = p1Score;
-            p2ScoreEl.textContent = p2Score;
-            
-            if (p1Score >= raceTo || p2Score >= raceTo) {
-                winnerBanner.classList.remove('hidden');
-                p1ScoreEl.classList.toggle('text-white', p1Score >= raceTo);
-                p2ScoreEl.classList.toggle('text-white', p2Score >= raceTo);
-            } else {
-                winnerBanner.classList.add('hidden');
-                p1ScoreEl.classList.remove('text-white');
-                p2ScoreEl.classList.remove('text-white');
-            }
-        }
-
-        // Push to Cloudflare Worker
-        let saveTimeout = null;
-        async function pushScoreUpdate(winnerName = null) {
-            if(!activeMatch) return;
-            
-            const scoreStr = p1Score + "-" + p2Score;
-            const finalWinner = winnerName || '';
-
-            statusEl.textContent = "Saving to scoreboard...";
-            statusEl.className = "text-yellow-400 font-semibold animate-pulse";
-
-            // Debounce or directly save: we can afford to save directly for live feel
-            try {
-                const resp = await fetch(`/api/scores/${activeMatch.id}/update`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ score: scoreStr, winner: finalWinner })
-                });
-
-                if(resp.ok) {
-                    statusEl.textContent = "Live Update Successful ✓";
-                    statusEl.className = "text-emerald-500 font-bold";
-                    
-                    // Update local cache so we don't lose it if we switch matches
-                    currentScores[activeMatch.id] = { score: scoreStr, winner: finalWinner };
-
-                    // Fade back out the success message logically
-                    if(saveTimeout) clearTimeout(saveTimeout);
-                    saveTimeout = setTimeout(() => {
-                        if(statusEl.textContent.includes("Successful")) {
-                            statusEl.className = "text-slate-500 transition-colors";
-                        }
-                    }, 3000);
-
-                } else {
-                    throw new Error("HTTP Status " + resp.status);
-                }
-            } catch(err) {
-                console.error("Failed to update schedule:", err);
-                statusEl.textContent = "Save Failed! Trying again automatically...";
-                statusEl.className = "text-red-500 font-bold";
-            }
-        }
-
-        // Initialize Data
-        loadExistingScores();
+    }
+    init();
     </script>
 </body>
 </html>

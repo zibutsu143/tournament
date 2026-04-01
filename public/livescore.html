@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Scores – 8 Ball Association Cup 2026</title>
+    <meta name="description" content="Live match scores for the 8 Ball Association Cup 2026 tournament.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="/data.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:       #050c18;
+            --surface:  #0d1525;
+            --border:   rgba(255,255,255,0.07);
+            --emerald:  #10b981;
+            --red:      #ef4444;
+            --text:     #e2e8f0;
+            --muted:    #475569;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Background ── */
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 60% 40% at 50% -10%, rgba(16,185,129,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 60% at 80% 80%, rgba(16,185,129,0.04) 0%, transparent 60%);
+        }
+
+        /* ── Header ── */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(5, 12, 24, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.9rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+        }
+        .logo-badge {
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 50%;
+            background: var(--emerald);
+            color: #022c22;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1rem;
+            box-shadow: 0 0 16px rgba(16,185,129,0.45);
+            flex-shrink: 0;
+        }
+        .logo-text {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        .logo-sub { font-size: 0.65rem; font-weight: 500; color: var(--muted); }
+
+        /* Live dot in header */
+        .header-live {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--red);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .header-live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+            animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity:1; transform:scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+            50% { opacity:0.7; transform:scale(0.85); box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+        }
+
+        .refresh-info {
+            font-size: 0.7rem;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        a.back-link {
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.2s;
+        }
+        a.back-link:hover { color: var(--emerald); }
+
+        /* ── Main ── */
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.25rem 4rem;
+        }
+
+        /* ── Section heading ── */
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-heading h2 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+        .count-pill {
+            background: rgba(16,185,129,0.15);
+            border: 1px solid rgba(16,185,129,0.25);
+            color: var(--emerald);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Grid ── */
+        .scores-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        @media (min-width: 600px)  { .scores-grid { grid-template-columns: 1fr 1fr; } }
+        @media (min-width: 900px)  { .scores-grid { grid-template-columns: 1fr 1fr 1fr; } }
+        @media (min-width: 1200px) { .scores-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        /* ── Match Card ── */
+        .match-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            animation: card-in 0.4s ease both;
+        }
+        @keyframes card-in {
+            from { opacity:0; transform:translateY(8px) scale(0.98); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--emerald), transparent);
+            opacity: 0.5;
+        }
+        .match-card.finished {
+            border-color: rgba(16,185,129,0.3);
+            box-shadow: 0 0 20px rgba(16,185,129,0.08);
+        }
+        .match-card.finished::before { opacity: 1; }
+
+        /* Card header row */
+        .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            gap: 0.5rem;
+        }
+        .round-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--emerald);
+        }
+        .round-badge.grp { color: #38bdf8; }
+
+        /* ── Billiard Ball Table Chip ── */
+        .ball-wrap-card {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .ball-chip-card {
+            width: 2.6rem;
+            height: 2.6rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.5),
+                inset 0 -2px 4px rgba(0,0,0,0.25),
+                inset 2px 2px 4px rgba(255,255,255,0.18);
+            flex-shrink: 0;
+        }
+        /* Shine */
+        .ball-chip-card::after {
+            content: '';
+            position: absolute;
+            top: 10%; left: 15%;
+            width: 28%; height: 22%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, transparent 100%);
+            border-radius: 50%;
+            transform: rotate(-35deg);
+            pointer-events: none;
+        }
+        /* Stripe band */
+        .ball-chip-card.stripe::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                transparent 26%,
+                rgba(255,255,255,0.92) 26%,
+                rgba(255,255,255,0.92) 74%,
+                transparent 74%
+            );
+            z-index: 0;
+        }
+        .ball-chip-card span { position: relative; z-index: 1; }
+        .ball-tbl-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        /* Finished badge */
+        .finished-strip {
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+        .finished-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: var(--emerald);
+            color: #022c22;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        /* Race to */
+        .race-to {
+            text-align: center;
+            font-size: 0.65rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .race-to strong { color: #94a3b8; }
+
+        /* Scoreline */
+        .scoreline {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .player-block {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .player-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.25;
+            min-height: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+        .player-name.winner { color: var(--emerald); }
+        .player-name.loser  { color: var(--muted); }
+
+        .score-num {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--emerald);
+            font-variant-numeric: tabular-nums;
+            transition: color 0.3s;
+        }
+        .score-num.winner { color: #fff; text-shadow: 0 0 16px rgba(16,185,129,0.7); }
+        .score-num.loser  { color: #334155; }
+
+        /* Bar */
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #059669, #10b981);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        .progress-fill.winner-fill { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+
+        .vs-divider {
+            color: var(--muted);
+            font-size: 0.65rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.25rem;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+        .empty-icon {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+        }
+        .empty-state h2 { font-size: 1.25rem; font-weight: 800; color: #64748b; }
+        .empty-state p  { font-size: 0.85rem; color: #334155; max-width: 22rem; line-height: 1.6; }
+
+        /* ── Countdown ── */
+        #refresh-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--emerald);
+            width: 100%;
+            transform-origin: left;
+            transition: transform linear;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+
+    <!-- Header -->
+    <header>
+        <a href="/" class="logo">
+            <span class="logo-badge">8</span>
+            <div>
+                <div class="logo-text">Association Cup 2026</div>
+                <div class="logo-sub">Live Scores</div>
+            </div>
+        </a>
+
+        <div class="header-live" id="live-indicator" style="display:none">
+            <span class="header-live-dot"></span>
+            LIVE
+        </div>
+
+        <div style="display:flex;align-items:center;gap:1rem;">
+            <span class="refresh-info" id="refresh-info">Refreshing in <strong id="countdown">10</strong>s</span>
+            <a href="/" class="back-link">← Tournament</a>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main>
+        <div class="section-heading">
+            <h2>Live Match Scores</h2>
+            <span class="count-pill" id="live-count">0 Live</span>
+        </div>
+
+        <div class="scores-grid" id="scores-grid">
+            <!-- Cards injected by JS -->
+        </div>
+
+        <div class="empty-state" id="empty-state">
+            <div class="empty-icon">📺</div>
+            <h2>No live matches right now</h2>
+            <p>When a match is set to <strong>Live</strong> in the Admin Board, it will appear here with real-time scores. Check back soon!</p>
+        </div>
+    </main>
+
+    <!-- Refresh progress bar at bottom -->
+    <div id="refresh-bar"></div>
+
+    <script>
+    // ── All match data ────────────────────────────────────────────────────────
+    const allMatches = [
+        ...(typeof groupMatchData !== 'undefined' ? groupMatchData : []),
+        ...(typeof matchData     !== 'undefined' ? matchData     : [])
+    ];
+
+    // ── Name resolution ───────────────────────────────────────────────────────
+    let knockoutMapping = {};
+
+    function buildKnockoutMapping(scores) {
+        knockoutMapping = {};
+
+        // Group standings
+        const groups = {};
+        for (let i = 0; i < 16; i++) groups[String.fromCharCode(65 + i)] = [];
+
+        const gMatches = typeof groupMatchData !== 'undefined' ? groupMatchData : [];
+        gMatches.forEach(m => {
+            if (!scores[m.id] || !scores[m.id].score) return;
+            const parts = scores[m.id].score.split('-');
+            if (parts.length !== 2) return;
+            const s1 = parseInt(parts[0]) || 0, s2 = parseInt(parts[1]) || 0;
+            [m.p1, m.p2].forEach((raw, idx) => {
+                const name = raw.split(' - ').pop();
+                if (typeof playerGroupIDs === 'undefined') return;
+                const gid = playerGroupIDs[name];
+                if (!gid) return;
+                const grp = gid.charAt(0);
+                if (!groups[grp]) return;
+                const my = idx === 0 ? s1 : s2, opp = idx === 0 ? s2 : s1;
+                const won = my > opp ? 1 : 0;
+                const ex = groups[grp].find(p => p.name === name);
+                if (ex) { ex.played++; ex.won += won; ex.lost += 1-won; ex.fw += my; ex.fl += opp; ex.pts += won?3:0; }
+                else groups[grp].push({ name, played:1, won, lost:1-won, fw:my, fl:opp, pts:won?3:0 });
+            });
+        });
+        Object.keys(groups).forEach(g => {
+            const s = groups[g].sort((a,b) => b.pts-a.pts || (b.fw-b.fl)-(a.fw-a.fl) || b.fw-a.fw);
+            if (s[0]) knockoutMapping[`1st Group ${g}`] = s[0].name;
+            if (s[1]) knockoutMapping[`2nd Group ${g}`] = s[1].name;
+        });
+
+        // Knockout winners
+        const kMatches = typeof matchData !== 'undefined' ? matchData : [];
+        kMatches.forEach(m => {
+            if (scores[m.id] && scores[m.id].winner) {
+                knockoutMapping[`Winner ${m.id}`] = knockoutMapping[scores[m.id].winner] || scores[m.id].winner;
+            }
+        });
+    }
+
+    function resolveName(raw) {
+        return knockoutMapping[raw] || raw;
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    const grid        = document.getElementById('scores-grid');
+    const emptyState  = document.getElementById('empty-state');
+    const liveCount   = document.getElementById('live-count');
+    const liveInd     = document.getElementById('live-indicator');
+
+    function raceTo(m) {
+        if (m.round === 'GRP') return 5;
+        if (m.id.startsWith('F')) return 9;
+        return 7;
+    }
+
+    // ── Billiard ball colors ───────────────────────────────────────────────
+    const BALL_COLORS = {
+        1:  { bg: '#D4A017', text: '#1a1a1a' },
+        2:  { bg: '#1565C0', text: '#fff' },
+        3:  { bg: '#B71C1C', text: '#fff' },
+        4:  { bg: '#4A148C', text: '#fff' },
+        5:  { bg: '#E65100', text: '#fff' },
+        6:  { bg: '#1B5E20', text: '#fff' },
+        7:  { bg: '#880E1F', text: '#fff' },
+        8:  { bg: '#0d0d0d', text: '#fff' },
+        9:  { bg: '#D4A017', text: '#1a1a1a', stripe: true },
+        10: { bg: '#1565C0', text: '#fff',   stripe: true },
+        11: { bg: '#B71C1C', text: '#fff',   stripe: true },
+        12: { bg: '#4A148C', text: '#fff',   stripe: true },
+    };
+    function ballChipCard(tableNum) {
+        if (!tableNum) return '';
+        const n = parseInt(tableNum);
+        const c = BALL_COLORS[n] || { bg: '#334155', text: '#fff' };
+        const bgStyle = c.stripe
+            ? `background:linear-gradient(to bottom,${c.bg} 26%,rgba(255,255,255,0.92) 26%,rgba(255,255,255,0.92) 74%,${c.bg} 74%);`
+            : `background:${c.bg};`;
+        return `<div class="ball-wrap-card">
+            <div class="ball-chip-card${c.stripe ? ' stripe' : ''}" style="${bgStyle}color:${c.text}">
+                <span>${n}</span>
+            </div>
+            <span class="ball-tbl-label">Table ${n}</span>
+        </div>`;
+    }
+
+    function renderCards(scores) {
+        // Collect all live matches and sort by table number
+        const liveMatches = allMatches
+            .filter(m => scores[m.id] && scores[m.id].showLive === true)
+            .sort((a, b) => {
+                const tA = scores[a.id]?.tableNum ? parseInt(scores[a.id].tableNum) : Infinity;
+                const tB = scores[b.id]?.tableNum ? parseInt(scores[b.id].tableNum) : Infinity;
+                return tA - tB;
+            });
+
+        liveCount.textContent = liveMatches.length + ' Live';
+        liveInd.style.display = liveMatches.length > 0 ? 'flex' : 'none';
+
+        if (liveMatches.length === 0) {
+            grid.innerHTML = '';
+            emptyState.style.display = 'flex';
+            return;
+        }
+        emptyState.style.display = 'none';
+
+        // Build HTML for all cards
+        let html = '';
+        liveMatches.forEach((m, i) => {
+            const sc = scores[m.id] || {};
+            let p1Score = 0, p2Score = 0;
+            if (sc.score) {
+                const parts = sc.score.split('-');
+                if (parts.length === 2) { p1Score = parseInt(parts[0]) || 0; p2Score = parseInt(parts[1]) || 0; }
+            }
+
+            const rt       = raceTo(m);
+            const finished = p1Score >= rt || p2Score >= rt;
+            const p1Wins   = p1Score >= rt;
+            const p2Wins   = p2Score >= rt;
+
+            const p1Name = resolveName(m.p1.split(' - ').pop());
+            const p2Name = resolveName(m.p2.split(' - ').pop());
+
+            const roundLabel = m.round === 'GRP'
+                ? `Group · Match ${m.id}`
+                : m.id.replace('QTR', 'Quarter Final').replace('SF', 'Semi Final').replace('F-', 'Final ');
+            const isGrp = m.round === 'GRP';
+
+            const tableBall = ballChipCard(sc.tableNum);
+
+            const p1Pct = Math.min(100, (p1Score / rt) * 100);
+            const p2Pct = Math.min(100, (p2Score / rt) * 100);
+
+            const winnerName = sc.winner || '';
+
+            html += `
+            <div class="match-card ${finished ? 'finished' : ''}" style="animation-delay:${i * 0.06}s">
+
+                <div class="card-meta">
+                    ${tableBall}
+                    <span class="round-badge ${isGrp ? 'grp' : ''}">${roundLabel}</span>
+                </div>
+
+                ${finished ? `
+                <div class="finished-strip">
+                    <span class="finished-chip">
+                        <svg width="10" height="10" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414L9 14.414 5.293 10.707a1 1 0 011.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"/></svg>
+                        ${winnerName ? winnerName + ' Wins' : 'Finished'}
+                    </span>
+                </div>` : ''}
+
+                <div class="race-to">Race to <strong>${rt}</strong></div>
+
+                <div class="scoreline">
+
+                    <!-- Player 1 -->
+                    <div class="player-block">
+                        <div class="player-name ${p1Wins ? 'winner' : (p2Wins ? 'loser' : '')}">${p1Name}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${p1Wins ? 'winner-fill' : ''}" style="width:${p1Pct}%"></div>
+                        </div>
+                        <div class="score-num ${p1Wins ? 'winner' : (p2Wins ? 'loser' : '')}">${p1Score}</div>
+                    </div>
+
+                    <div class="vs-divider">VS</div>
+
+                    <!-- Player 2 -->
+                    <div class="player-block">
+                        <div class="player-name ${p2Wins ? 'winner' : (p1Wins ? 'loser' : '')}">${p2Name}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${p2Wins ? 'winner-fill' : ''}" style="width:${p2Pct}%"></div>
+                        </div>
+                        <div class="score-num ${p2Wins ? 'winner' : (p1Wins ? 'loser' : '')}">${p2Score}</div>
+                    </div>
+
+                </div>
+
+            </div>`;
+        });
+
+        grid.innerHTML = html;
+    }
+
+    // ── Refresh loop ──────────────────────────────────────────────────────────
+    const REFRESH_INTERVAL = 10; // seconds
+    let countdown = REFRESH_INTERVAL;
+    const countEl  = document.getElementById('countdown');
+    const barEl    = document.getElementById('refresh-bar');
+
+    async function fetchAndRender() {
+        try {
+            const res = await fetch('/api/scores');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const scores = await res.json();
+            buildKnockoutMapping(scores);
+            renderCards(scores);
+        } catch (e) {
+            console.error('Failed to fetch scores:', e);
+        }
+    }
+
+    function startCountdown() {
+        countdown = REFRESH_INTERVAL;
+        // Animate the bottom bar
+        barEl.style.transition = 'none';
+        barEl.style.transform   = 'scaleX(1)';
+        requestAnimationFrame(() => {
+            barEl.style.transition = `transform ${REFRESH_INTERVAL}s linear`;
+            barEl.style.transform  = 'scaleX(0)';
+        });
+
+        const tick = setInterval(() => {
+            countdown--;
+            if (countEl) countEl.textContent = Math.max(0, countdown);
+            if (countdown <= 0) {
+                clearInterval(tick);
+                fetchAndRender().then(startCountdown);
+            }
+        }, 1000);
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    fetchAndRender().then(startCountdown);
+    </script>
+</body>
+</html>

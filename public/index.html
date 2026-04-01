@@ -76,10 +76,25 @@
             transform: scale(0.98);
         }
 
-        @media (max-width: 767px) {
-            .mobile-tab-section:not(.active) {
-                display: none !important;
-            }
+        /* Tab sections: only the active one is shown — applies at ALL screen sizes */
+        .mobile-tab-section:not(.active) {
+            display: none !important;
+        }
+
+        /* Active tab indicator animation */
+        .tab-btn {
+            position: relative;
+        }
+        .tab-btn.active-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: #10b981;
+            border-radius: 9999px;
         }
     </style>
 </head>
@@ -102,7 +117,14 @@
                             Association</p>
                     </div>
                 </div>
-                <div class="flex items-center">
+                <div class="flex items-center gap-2">
+                    <a href="/livescore" class="flex items-center gap-2 bg-red-950/60 hover:bg-red-900/60 text-red-300 hover:text-red-200 px-3 sm:px-4 py-2 rounded-lg border border-red-800/50 hover:border-red-500/60 transition-all text-xs sm:text-sm font-semibold shadow-sm group">
+                        <span style="position:relative;display:flex;align-items:center;justify-content:center;width:0.6rem;height:0.6rem;">
+                            <span style="position:absolute;inset:0;border-radius:50%;background:#ef4444;animation:ping 1.2s cubic-bezier(0,0,0.2,1) infinite;opacity:0.6;"></span>
+                            <span style="border-radius:50%;background:#ef4444;width:0.5rem;height:0.5rem;display:block;flex-shrink:0;"></span>
+                        </span>
+                        <span>Ongoing Matches</span>
+                    </a>
                     <a href="/matchadmin.html" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 sm:px-4 py-2 rounded-lg border border-slate-600 hover:border-emerald-500/50 transition-all text-xs sm:text-sm font-semibold shadow-sm group">
                         <svg class="w-4 h-4 text-emerald-500 group-hover:rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         <span class="hidden sm:inline">Match Admin</span>
@@ -115,14 +137,26 @@
     <!-- Main Content -->
     <main class="flex-grow flex flex-col">
 
-        <!-- Mobile Tabs -->
-        <nav class="bg-slate-900 border-b border-slate-800 sticky top-[96px] z-20 md:hidden" id="mobile-tabs">
-            <div class="flex">
-                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500 transition-colors" data-target="scores-section">Scores</button>
-                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="schedule-section">Schedule</button>
-                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="standings-section">Standings</button>
-                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="bracket-section">Bracket</button>
-                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="rules-section">Rules</button>
+        <!-- Navigation Tabs (all screen sizes) -->
+        <nav class="bg-slate-900/95 backdrop-blur border-b border-slate-800 sticky top-[96px] z-20" id="mobile-tabs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex">
+                    <button class="tab-btn flex-1 py-3.5 px-2 text-xs sm:text-sm font-semibold text-emerald-400 border-b-2 border-emerald-500 transition-all duration-200 hover:text-emerald-300" data-target="scores-section">
+                        <span class="hidden sm:inline">⚡ </span>Scores
+                    </button>
+                    <button class="tab-btn flex-1 py-3.5 px-2 text-xs sm:text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-600 transition-all duration-200" data-target="schedule-section">
+                        <span class="hidden sm:inline">📋 </span>Schedule
+                    </button>
+                    <button class="tab-btn flex-1 py-3.5 px-2 text-xs sm:text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-600 transition-all duration-200" data-target="standings-section">
+                        <span class="hidden sm:inline">📊 </span>Standings
+                    </button>
+                    <button class="tab-btn flex-1 py-3.5 px-2 text-xs sm:text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-600 transition-all duration-200" data-target="bracket-section">
+                        <span class="hidden sm:inline">🏆 </span>Bracket
+                    </button>
+                    <button class="tab-btn flex-1 py-3.5 px-2 text-xs sm:text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-600 transition-all duration-200" data-target="rules-section">
+                        <span class="hidden sm:inline">📜 </span>Rules
+                    </button>
+                </div>
             </div>
         </nav>
 
@@ -201,7 +235,7 @@
                             <div>Round</div>
                             <div>Score</div>
                         </div>
-                        <div id="player-matches-body" class="divide-y divide-slate-700/50 bg-slate-800/30">
+                        <div id="player-matches-body" class="flex flex-col gap-3 md:gap-0 md:divide-y md:divide-slate-700/50 bg-slate-800/30">
                             <!-- Populated by JS -->
                         </div>
                     </div>
@@ -248,20 +282,37 @@
         <!-- Bracket Section -->
         <section id="bracket-section" class="mobile-tab-section flex-grow flex flex-col relative w-full bg-slate-900 border-t border-slate-800">
             <div
-                class="px-4 sm:px-6 lg:px-8 py-4 bg-slate-800/30 flex justify-between items-center border-b border-slate-800">
-                <h2 class="text-lg font-semibold text-slate-200">Knockout Match Flow</h2>
-                <span class="text-xs text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">Hover
-                    over matches to highlight paths</span>
+                class="px-4 sm:px-6 lg:px-8 py-3 bg-slate-800/30 flex justify-between items-center border-b border-slate-800 gap-3">
+                <h2 class="text-lg font-semibold text-slate-200 whitespace-nowrap">Knockout Match Flow</h2>
+
+                <!-- Zoom Controls -->
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-1 py-1 shadow">
+                        <button id="zoom-out-btn" onclick="zoomBracket(-0.15)" title="Zoom Out"
+                            class="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 hover:bg-slate-700 hover:text-emerald-400 transition-all text-lg font-bold select-none" aria-label="Zoom out">
+                            −
+                        </button>
+                        <button id="zoom-reset-btn" onclick="zoomBracket(0)" title="Reset Zoom"
+                            class="min-w-[3.5rem] h-7 flex items-center justify-center rounded-md text-xs font-bold text-emerald-400 hover:bg-slate-700 transition-all select-none tabular-nums" aria-label="Reset zoom">
+                            100%
+                        </button>
+                        <button id="zoom-in-btn" onclick="zoomBracket(0.15)" title="Zoom In"
+                            class="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 hover:bg-slate-700 hover:text-emerald-400 transition-all text-lg font-bold select-none" aria-label="Zoom in">
+                            +
+                        </button>
+                    </div>
+                    <span class="text-xs text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700 hidden sm:inline">Hover over matches to highlight paths</span>
+                </div>
             </div>
 
             <!-- Bracket Scroll Container -->
             <div class="bracket-scroll overflow-x-auto overflow-y-auto flex-grow relative p-4 sm:p-8 h-[600px] sm:h-[800px]"
                 id="bracket-container">
                 <!-- SVG Canvas for drawing connecting lines -->
-                <svg id="lines-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
+                <svg id="lines-canvas" class="absolute top-0 left-0 pointer-events-none z-0" style="width:100%;height:100%;"></svg>
 
                 <!-- Columns Container -->
-                <div class="flex gap-8 sm:gap-16 min-w-max relative z-10" id="rounds-container">
+                <div class="flex gap-8 sm:gap-16 min-w-max relative z-10" id="rounds-container" style="transform-origin: top left; transition: transform 0.18s ease;">
                     <!-- Rounds will be injected here via JS -->
                 </div>
             </div>
@@ -444,7 +495,20 @@
         // Set a 30 second interval fetching updates implicitly
         setInterval(fetchLiveScores, 30000);
 
+
+        // Helper: "02-Apr" → "Wed, 02-Apr"
+        function formatScheduleDate(dateStr) {
+            if (!dateStr) return dateStr;
+            const monthMap = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5,
+                               Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+            const [day, mon] = dateStr.split('-');
+            const d = new Date(2026, monthMap[mon], parseInt(day));
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+            return `${dayName}, ${dateStr}`;
+        }
+
         // Initialize Player Dropdown Logic
+
         const datalist = document.getElementById('player-list');
         const searchInput = document.getElementById('playerSearch');
         const containerObj = document.getElementById('player-matches-container');
@@ -459,19 +523,81 @@
             datalist.appendChild(option);
         });
 
+        // Build a mapping from placeholder name → real player name using live scores
+        function buildScheduleKnockoutMapping() {
+            const km = {};
+            // Group standings → "1st/2nd Group X"
+            const groups = {};
+            for (let i = 0; i < 16; i++) groups[String.fromCharCode(65 + i)] = [];
+            (typeof groupMatchData !== 'undefined' ? groupMatchData : []).forEach(m => {
+                if (!publicScoresCache[m.id] || !publicScoresCache[m.id].score) return;
+                const parts = publicScoresCache[m.id].score.split('-');
+                if (parts.length !== 2) return;
+                const s1 = parseInt(parts[0]) || 0, s2 = parseInt(parts[1]) || 0;
+                [m.p1, m.p2].forEach((raw, idx) => {
+                    const name = raw.split(' - ').pop();
+                    const gid = playerGroupIDs[name];
+                    if (!gid) return;
+                    const grp = gid.charAt(0);
+                    if (!groups[grp]) return;
+                    const my = idx === 0 ? s1 : s2, opp = idx === 0 ? s2 : s1;
+                    const won = my > opp ? 1 : 0;
+                    const ex = groups[grp].find(p => p.name === name);
+                    if (ex) { ex.played++; ex.won += won; ex.lost += 1-won; ex.fw += my; ex.fl += opp; ex.pts += won?3:0; }
+                    else groups[grp].push({ name, played:1, won, lost:1-won, fw:my, fl:opp, pts:won?3:0 });
+                });
+            });
+            Object.keys(groups).forEach(g => {
+                const s = groups[g].sort((a,b) => b.pts-a.pts || (b.fw-b.fl)-(a.fw-a.fl) || b.fw-a.fw);
+                if (s[0]) km[`1st Group ${g}`] = s[0].name;
+                if (s[1]) km[`2nd Group ${g}`] = s[1].name;
+            });
+            // Knockout winners
+            (typeof matchData !== 'undefined' ? matchData : []).forEach(m => {
+                if (publicScoresCache[m.id] && publicScoresCache[m.id].winner) {
+                    km[`Winner ${m.id}`] = km[publicScoresCache[m.id].winner] || publicScoresCache[m.id].winner;
+                }
+            });
+            return km;
+        }
+
         // Handle Player Selection
         searchInput.addEventListener('input', (e) => {
             const selectedPlayer = e.target.value.trim();
+            const playerClean = selectedPlayer.split(' - ').pop(); // raw name without group prefix
 
             if (allFormattedPlayers.includes(selectedPlayer) || selectedPlayer !== "") {
-                const matches = groupMatchData.filter(m => m.p1 === selectedPlayer || m.p2 === selectedPlayer);
+                // Group stage matches: exact field match
+                const groupMatches = (typeof groupMatchData !== 'undefined' ? groupMatchData : [])
+                    .filter(m => m.p1 === selectedPlayer || m.p2 === selectedPlayer);
+
+                // Knockout matches: resolve placeholder names and check if player is in slot
+                const km = buildScheduleKnockoutMapping();
+                const knockoutMatches = (typeof matchData !== 'undefined' ? matchData : []).filter(m => {
+                    const r1 = km[m.p1] || m.p1;
+                    const r2 = km[m.p2] || m.p2;
+                    return r1 === playerClean || r2 === playerClean;
+                });
+
+                const matches = [...groupMatches, ...knockoutMatches];
 
                 if (matches.length > 0) {
                     playerNameDisplay.textContent = selectedPlayer;
                     matchBody.innerHTML = '';
 
                     matches.forEach(m => {
-                        const opponent = m.p1 === selectedPlayer ? m.p2 : m.p1;
+                        // Resolve opponent name — for knockout matches use the mapping
+                        const km = buildScheduleKnockoutMapping();
+                        let rawOpponent, rawSelf;
+                        if (m.round === 'GRP') {
+                            rawOpponent = m.p1 === selectedPlayer ? m.p2 : m.p1;
+                        } else {
+                            const r1 = km[m.p1] || m.p1;
+                            const r2 = km[m.p2] || m.p2;
+                            const playerCleanLocal = selectedPlayer.split(' - ').pop();
+                            rawOpponent = r1 === playerCleanLocal ? (km[m.p2] || m.p2) : (km[m.p1] || m.p1);
+                        }
+                        const opponent = rawOpponent;
                         
                         let matchScore = "-";
                         let isFinished = false;
@@ -506,14 +632,34 @@
                             scoreHtml = `<span class="font-mono text-emerald-400 font-bold drop-shadow-sm">${matchScore}</span>`;
                         }
 
+                        // Format date/time/table/round — handle group vs knockout differences
+                        const isKnockout = m.round !== 'GRP';
+                        let displayDate, displayTime, displayTable, displayRound;
+                        if (isKnockout) {
+                            // knockout time field is e.g. "06-Apr 18:30"
+                            const tp = (m.time || '').split(' ');
+                            displayDate = tp[0] || '';
+                            displayTime = tp[1] || m.time || '';
+                            displayTable = 'TBD';
+                            const rPrefix = m.id.replace(/-\d+$/, '');
+                            const rLabels = { R32:'Round of 32', R16:'Round of 16', QTR:'Quarter-Final', SF:'Semi-Final', F:'Final' };
+                            displayRound = rLabels[rPrefix] || m.id;
+                        } else {
+                            displayDate = m.date || '';
+                            displayTime = m.time || '';
+                            displayTable = m.table ? `Table ${m.table}` : '-';
+                            displayRound = 'GRP';
+                        }
+                        const dateLabel = displayDate ? `${formatScheduleDate(displayDate)} - ${displayTime}` : displayTime;
+
                         const row = document.createElement('div');
-                        row.className = `${rowBg} transition-all p-4 md:px-4 md:py-3 flex flex-col md:grid md:grid-cols-[0.8fr_1.5fr_0.8fr_2fr_0.8fr_1.5fr] gap-2 md:gap-4 md:items-center text-sm md:text-sm text-slate-300`;
+                        row.className = `${rowBg} transition-all p-4 md:px-4 md:py-3 rounded-lg md:rounded-none border border-slate-700/50 md:border-0 md:border-b md:border-slate-700/50 flex flex-col md:grid md:grid-cols-[0.8fr_1.5fr_0.8fr_2fr_0.8fr_1.5fr] gap-2 md:gap-4 md:items-center text-sm md:text-sm text-slate-300`;
                         row.innerHTML = `
                             <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Match #</span> <span class="font-medium text-emerald-400">#${m.id}</span></div>
-                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Date & Time</span> <span>${m.date} - ${m.time}</span></div>
-                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Table</span> <span>Table ${m.table}</span></div>
+                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Date &amp; Time</span> <span>${dateLabel}</span></div>
+                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Table</span> <span>${displayTable}</span></div>
                             <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Opponent</span> <span class="font-medium text-white">${opponent}</span></div>
-                            <div class="flex justify-between md:block items-center mt-2 md:mt-0 pt-2 md:pt-0 border-t border-slate-700/50 md:border-0"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Round</span> <span><span class="bg-slate-700 text-xs px-2 py-1 rounded text-white">${m.round}</span></span></div>
+                            <div class="flex justify-between md:block items-center mt-2 md:mt-0 pt-2 md:pt-0 border-t border-slate-700/50 md:border-0"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Round</span> <span><span class="${isKnockout ? 'bg-emerald-900 text-emerald-300' : 'bg-slate-700 text-white'} text-xs px-2 py-1 rounded">${displayRound}</span></span></div>
                             <div class="flex justify-between md:block items-center md:mt-0 pt-2 md:pt-0 border-t border-slate-700/50 md:border-0"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Score</span> <div class="flex items-center">${scoreHtml}${statusBadge}</div></div>
                         `;
                         matchBody.appendChild(row);
@@ -614,11 +760,105 @@
             }
         });
 
+        // Helper: get element's top/left relative to the scroll container's content origin
+        // (immune to page-level scroll position)
+        function getOffsetRelativeTo(el, ancestor) {
+            let top = 0, left = 0;
+            let cur = el;
+            while (cur && cur !== ancestor) {
+                top += cur.offsetTop;
+                left += cur.offsetLeft;
+                cur = cur.offsetParent;
+            }
+            return { top, left };
+        }
+
+        // ---- Bracket Zoom ----
+        let bracketScale = 1.0;
+        const MIN_SCALE = 0.3;
+        const MAX_SCALE = 1.5;
+
+        function zoomBracket(delta) {
+            const container = document.getElementById('rounds-container');
+            const svgCanvas = document.getElementById('lines-canvas');
+            const resetBtn  = document.getElementById('zoom-reset-btn');
+            const zoomInBtn  = document.getElementById('zoom-in-btn');
+            const zoomOutBtn = document.getElementById('zoom-out-btn');
+
+            if (delta === 0) {
+                // Reset to 100%
+                bracketScale = 1.0;
+            } else {
+                bracketScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, bracketScale + delta));
+            }
+
+            container.style.transform = `scale(${bracketScale})`;
+
+            // Expand svg canvas to cover scaled content so lines are never clipped
+            const scaledW = container.scrollWidth * bracketScale;
+            const scaledH = container.scrollHeight * bracketScale;
+            svgCanvas.style.width  = Math.max(scaledW, document.getElementById('bracket-container').clientWidth)  + 'px';
+            svgCanvas.style.height = Math.max(scaledH, document.getElementById('bracket-container').clientHeight) + 'px';
+
+            // Update percentage label
+            if (resetBtn) resetBtn.textContent = Math.round(bracketScale * 100) + '%';
+
+            // Dim zoom buttons at limits
+            if (zoomInBtn)  zoomInBtn.style.opacity  = bracketScale >= MAX_SCALE ? '0.3' : '1';
+            if (zoomOutBtn) zoomOutBtn.style.opacity = bracketScale <= MIN_SCALE ? '0.3' : '1';
+
+            // Redraw connector lines after CSS transition (0.18s)
+            setTimeout(() => { if (window.drawLines) window.drawLines(); }, 200);
+        }
+        window.zoomBracket = zoomBracket;
+
+        // Keyboard shortcuts: Ctrl +/- and Ctrl+0
+        document.addEventListener('keydown', (e) => {
+            if (!e.ctrlKey && !e.metaKey) return;
+            const bracketTab = document.getElementById('bracket-section');
+            if (!bracketTab || !bracketTab.classList.contains('active')) return;
+            if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomBracket(0.15); }
+            else if (e.key === '-')              { e.preventDefault(); zoomBracket(-0.15); }
+            else if (e.key === '0')              { e.preventDefault(); zoomBracket(0); }
+        });
+
+        // Pinch-to-zoom on touch (mobile)
+        (() => {
+            let lastDist = null;
+            const bc = document.getElementById('bracket-container');
+            if (!bc) return;
+            bc.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX,
+                                          e.touches[0].clientY - e.touches[1].clientY);
+                }
+            }, { passive: true });
+            bc.addEventListener('touchmove', (e) => {
+                if (e.touches.length !== 2 || lastDist === null) return;
+                const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX,
+                                        e.touches[0].clientY - e.touches[1].clientY);
+                const ratio = dist / lastDist;
+                const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, bracketScale * ratio));
+                if (Math.abs(newScale - bracketScale) > 0.005) {
+                    bracketScale = newScale;
+                    const container = document.getElementById('rounds-container');
+                    const resetBtn  = document.getElementById('zoom-reset-btn');
+                    container.style.transform = `scale(${bracketScale})`;
+                    if (resetBtn) resetBtn.textContent = Math.round(bracketScale * 100) + '%';
+                    lastDist = dist;
+                }
+            }, { passive: true });
+            bc.addEventListener('touchend', () => {
+                lastDist = null;
+                setTimeout(() => { if (window.drawLines) window.drawLines(); }, 200);
+            }, { passive: true });
+        })();
+
         // Function to draw SVG connecting lines
         function drawLines() {
             svgCanvas.innerHTML = ''; // Clear existing
 
-            // Wait for layout calculation
+            // scrollContainer rect — our coordinate origin
             const containerRect = scrollContainer.getBoundingClientRect();
 
             matchData.forEach(match => {
@@ -626,20 +866,24 @@
 
                 const el1 = document.getElementById(`match-${match.id}`);
                 const el2 = document.getElementById(`match-${match.next}`);
-
                 if (!el1 || !el2) return;
 
+                // getBoundingClientRect gives actual visual (post-transform) positions
                 const r1 = el1.getBoundingClientRect();
                 const r2 = el2.getBoundingClientRect();
 
-                // Calculate coordinates relative to the scroll container's internal content
-                const startX = r1.right - containerRect.left + scrollContainer.scrollLeft;
-                const startY = r1.top + (r1.height / 2) - containerRect.top + scrollContainer.scrollTop;
+                // Convert to coordinates relative to the scroll container's *content* origin
+                // (add scroll offset so lines don't shift when the user scrolls)
+                const scrollLeft = scrollContainer.scrollLeft;
+                const scrollTop  = scrollContainer.scrollTop;
 
-                const endX = r2.left - containerRect.left + scrollContainer.scrollLeft;
-                const endY = r2.top + (r2.height / 2) - containerRect.top + scrollContainer.scrollTop;
+                const startX = (r1.right  - containerRect.left) + scrollLeft;
+                const startY = (r1.top    - containerRect.top  + r1.height / 2) + scrollTop;
 
-                // Create curved bezier path
+                const endX   = (r2.left   - containerRect.left) + scrollLeft;
+                const endY   = (r2.top    - containerRect.top  + r2.height / 2) + scrollTop;
+
+                // Cubic bezier S-curve connector
                 const midX = startX + (endX - startX) / 2;
                 const pathData = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
 
@@ -651,7 +895,23 @@
 
                 svgCanvas.appendChild(path);
             });
+
+            // Size SVG to cover the full visible + scrollable + scaled area
+            const roundsContainer = document.getElementById('rounds-container');
+            const totalW = Math.max(
+                scrollContainer.scrollWidth,
+                roundsContainer.offsetWidth * bracketScale + 64
+            );
+            const totalH = Math.max(
+                scrollContainer.scrollHeight,
+                roundsContainer.offsetHeight * bracketScale + 64
+            );
+            svgCanvas.setAttribute('width',  totalW);
+            svgCanvas.setAttribute('height', totalH);
+            svgCanvas.style.width  = totalW + 'px';
+            svgCanvas.style.height = totalH + 'px';
         }
+
 
         // Draw lines initially and on window resize
         window.addEventListener('load', () => setTimeout(drawLines, 100));
@@ -660,6 +920,10 @@
         // Setup ResizeObserver to catch any layout shifts
         const resizeObserver = new ResizeObserver(() => drawLines());
         resizeObserver.observe(container);
+
+        // Redraw lines when user scrolls the bracket (getBoundingClientRect changes with scroll)
+        scrollContainer.addEventListener('scroll', drawLines, { passive: true });
+
 
         // Interaction Logic: Highlight Match lineage
         function highlightPath(matchId) {
@@ -736,35 +1000,65 @@
             try {
                 const response = await fetch('/api/scores');
                 const scores = await response.json();
-                
-                // Update match cards (knockout)
-                document.querySelectorAll('.match-card').forEach(card => {
-                    const id = card.dataset.id;
-                    if (scores[id]) {
-                        const infoDiv = card.querySelector('.text-\\[10px\\] > div:nth-child(2)');
-                        if (infoDiv) infoDiv.innerHTML = `<span class="text-emerald-400 font-bold text-xs font-mono tracking-wider">${scores[id].score}</span>`;
-                        
-                        const winName = scores[id].winner;
-                        if (winName) {
-                            card.querySelectorAll('span.text-sm').forEach(span => {
-                                const spanText = span.innerText.trim();
-                                const winNameTrimmed = winName.trim();
-                                if (spanText === winNameTrimmed || spanText === rawToFormatted[winNameTrimmed]) {
-                                    span.classList.add('text-emerald-400', 'font-bold');
-                                    span.classList.remove('text-slate-300');
-                                    span.nextElementSibling.classList.replace('bg-slate-700', 'bg-emerald-500');
-                                } else {
-                                    span.classList.add('text-slate-500');
-                                    span.classList.remove('text-slate-300');
-                                }
-                            });
-                        }
-                    }
-                });
 
-                // Process Group Standings
+                // STEP 1: Resolve all bracket placeholder names first (e.g. "Winner R32-4" → "Ali Shawin")
+                // This must happen before the winner highlighting loop so spans have the real player names.
                 window.currentScores = scores;
                 calculateGroupStandings(scores);
+
+                // STEP 2: Now apply visual state to knockout cards (names are resolved in DOM)
+                document.querySelectorAll('.match-card').forEach(card => {
+                    const id = card.dataset.id;
+                    if (!scores[id]) return;
+
+                    const { score, winner } = scores[id];
+
+                    // --- Mark card as finished ---
+                    card.classList.add('border-emerald-500/60');
+                    card.classList.remove('border-slate-700');
+                    card.style.boxShadow = '0 0 16px rgba(16,185,129,0.18)';
+
+                    // Add FINISHED badge if not already there
+                    if (!card.querySelector('.finished-badge')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'finished-badge absolute -top-2.5 right-3 bg-emerald-500 text-slate-900 text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow border border-emerald-300 tracking-widest z-10';
+                        badge.textContent = 'FINISHED';
+                        card.appendChild(badge);
+                    }
+
+                    // Update score display (replace "Race to X" with final score)
+                    const raceDiv = card.querySelector('.text-\\[10px\\] > div:nth-child(2)');
+                    if (raceDiv && score) {
+                        raceDiv.innerHTML = `<span class="text-emerald-400 font-black text-sm font-mono tracking-widest drop-shadow">${score}</span>`;
+                    }
+
+                    // Highlight winner row, dim loser row
+                    // By this point, spans already show real player names (resolved in step 1)
+                    if (winner) {
+                        const winnerTrimmed = winner.trim();
+                        card.querySelectorAll('span.text-sm').forEach(span => {
+                            const spanText = span.innerText.trim();
+                            const isWinner = spanText === winnerTrimmed || spanText === rawToFormatted[winnerTrimmed];
+                            const row = span.closest('div.flex');
+
+                            if (isWinner) {
+                                // Winner: bright green text, green dot, green row bg
+                                span.classList.add('text-emerald-400', 'font-bold');
+                                span.classList.remove('text-slate-300', 'text-slate-500');
+                                const dot = span.nextElementSibling;
+                                if (dot) { dot.classList.remove('bg-slate-700'); dot.classList.add('bg-emerald-500', 'shadow-[0_0_6px_rgba(16,185,129,0.8)]'); }
+                                if (row) { row.classList.add('bg-emerald-950/60'); row.classList.remove('bg-slate-900'); }
+                            } else {
+                                // Loser: dimmed with strikethrough
+                                span.classList.add('text-slate-500', 'line-through', 'decoration-slate-600');
+                                span.classList.remove('text-slate-300', 'text-emerald-400', 'font-bold');
+                                const dot = span.nextElementSibling;
+                                if (dot) { dot.classList.remove('bg-emerald-500'); dot.classList.add('bg-slate-700'); }
+                                if (row) { row.classList.add('opacity-50'); }
+                            }
+                        });
+                    }
+                });
             } catch (err) {
                 console.error('Failed to fetch scores:', err);
             }
@@ -844,6 +1138,70 @@
                 p.fd = p.fw - p.fl;
                 if (groups[p.group]) {
                     groups[p.group].push(p);
+                }
+            });
+
+            // Dynamically propagate Standings Winners directly into Knockout Bracket
+            const knockoutMapping = {};
+            for (let i = 0; i < 16; i++) {
+                const letter = String.fromCharCode(65 + i);
+                if (groups[letter] && groups[letter].length > 0) {
+                    const sorted = groups[letter].slice().sort((a,b) => {
+                        if (b.pts !== a.pts) return b.pts - a.pts;
+                        return b.fd - a.fd;
+                    });
+                    if (sorted[0]) knockoutMapping[`1st Group ${letter}`] = sorted[0].name.split(' - ').pop();
+                    if (sorted[1]) knockoutMapping[`2nd Group ${letter}`] = sorted[1].name.split(' - ').pop();
+                }
+            }
+
+            matchData.forEach(m => {
+                if(!m.originalP1) m.originalP1 = m.p1;
+                if(!m.originalP2) m.originalP2 = m.p2;
+
+                let p1Updated = false;
+                let p2Updated = false;
+
+                if (knockoutMapping[m.originalP1] && m.p1 !== knockoutMapping[m.originalP1]) {
+                    m.p1 = knockoutMapping[m.originalP1];
+                    p1Updated = true;
+                }
+                if (knockoutMapping[m.originalP2] && m.p2 !== knockoutMapping[m.originalP2]) {
+                    m.p2 = knockoutMapping[m.originalP2];
+                    p2Updated = true;
+                }
+
+                // Propagate the actual winner of THIS match to the next round 
+                if (scores[m.id] && scores[m.id].winner) {
+                    let actualWinnerName = scores[m.id].winner;
+                    // Resolve database string (which might be an old placeholder) to the latest resolved dynamic name
+                    if (actualWinnerName === m.originalP1 || actualWinnerName === m.p1) {
+                        actualWinnerName = m.p1;
+                    } else if (actualWinnerName === m.originalP2 || actualWinnerName === m.p2) {
+                        actualWinnerName = m.p2;
+                    }
+                    knockoutMapping[`Winner ${m.id}`] = actualWinnerName.split(' - ').pop();
+                }
+
+                if (p1Updated || p2Updated) {
+                    const card = document.getElementById(`match-${m.id}`);
+                    if (card) {
+                        const spans = card.querySelectorAll('span.text-sm');
+                        if (spans.length >= 2) {
+                            if (p1Updated) {
+                                spans[0].textContent = m.p1;
+                                spans[0].title = m.p1;
+                                spans[0].classList.add('text-emerald-400');
+                                spans[0].classList.remove('text-slate-300');
+                            }
+                            if (p2Updated) {
+                                spans[1].textContent = m.p2;
+                                spans[1].title = m.p2;
+                                spans[1].classList.add('text-emerald-400');
+                                spans[1].classList.remove('text-slate-300');
+                            }
+                        }
+                    }
                 }
             });
 
