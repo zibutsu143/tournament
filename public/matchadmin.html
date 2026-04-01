@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Admin - Live Score</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/data.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-200 min-h-screen p-4 sm:p-8 font-sans">
+    
+    <div class="max-w-4xl mx-auto">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-slate-700">
+            <h1 class="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
+                <span class="bg-emerald-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.5)]">8</span>
+                Live Admin Tool
+            </h1>
+            <a href="/" class="text-slate-400 hover:text-emerald-400 transition-colors text-sm font-medium flex items-center gap-1">
+                &larr; Back to Tournament
+            </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-2">Select Date</label>
+                <select id="date-filter" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 shadow-sm text-base sm:text-lg cursor-pointer transition-colors">
+                    <!-- Populated via JS -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-2">Select Time</label>
+                <select id="time-filter" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 shadow-sm text-base sm:text-lg cursor-pointer transition-colors">
+                    <!-- Populated via JS -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-2">Select Active Match</label>
+                <select id="match-selector" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm text-base sm:text-lg cursor-pointer transition-colors">
+                    <option value="">-- Choose a Match to manage --</option>
+                    <!-- Populated via JS -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Dashboard panel, hidden initially -->
+        <div id="match-dashboard" class="hidden bg-slate-800/40 border border-slate-700 rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
+                <svg class="w-96 h-96 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                </svg>
+            </div>
+
+            <div class="text-center mb-10 relative z-10">
+                <h2 id="match-label" class="text-emerald-400 font-bold text-xl sm:text-2xl uppercase tracking-wider mb-2">Match 1</h2>
+                <div class="inline-block bg-slate-700/50 px-4 py-1 rounded-full border border-slate-600">
+                    <p id="race-label" class="text-slate-300 font-semibold text-sm">Race to 5</p>
+                </div>
+                <div id="winner-banner" class="mt-4 hidden animate-pulse">
+                    <span class="bg-emerald-500 text-slate-900 font-black px-6 py-2 rounded-lg text-lg sm:text-xl uppercase shadow-lg border-2 border-emerald-400">Match Finished</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8 items-center relative z-10">
+                
+                <!-- Player 1 Card -->
+                <div class="bg-slate-900/80 rounded-xl p-6 border border-slate-700 shadow-inner flex flex-col items-center">
+                    <h3 id="p1-name" class="text-lg sm:text-xl font-bold text-white mb-6 text-center min-h-[56px] flex items-center justify-center w-full leading-tight">Player 1</h3>
+                    
+                    <div class="flex items-center gap-4 sm:gap-6 mb-2">
+                        <button onclick="changeScore(1, -1)" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
+                            -
+                        </button>
+                        <div id="p1-score" class="text-6xl sm:text-8xl font-black text-emerald-400 w-24 text-center select-none font-mono">
+                            0
+                        </div>
+                        <button onclick="changeScore(1, 1)" class="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VS Badge (desktop) / Divider (mobile) -->
+                <div class="flex justify-center items-center">
+                    <div class="w-12 h-12 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 font-black text-sm uppercase z-10 shadow-lg">
+                        VS
+                    </div>
+                </div>
+
+                <!-- Player 2 Card -->
+                <div class="bg-slate-900/80 rounded-xl p-6 border border-slate-700 shadow-inner flex flex-col items-center">
+                    <h3 id="p2-name" class="text-lg sm:text-xl font-bold text-white mb-6 text-center min-h-[56px] flex items-center justify-center w-full leading-tight">Player 2</h3>
+                    
+                    <div class="flex items-center gap-4 sm:gap-6 mb-2">
+                        <button onclick="changeScore(2, -1)" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
+                            -
+                        </button>
+                        <div id="p2-score" class="text-6xl sm:text-8xl font-black text-emerald-400 w-24 text-center select-none font-mono">
+                            0
+                        </div>
+                        <button onclick="changeScore(2, 1)" class="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-white font-bold text-3xl transition-colors shadow focus:outline-none active:scale-95">
+                            +
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Auto-save tracker -->
+            <div class="mt-10 text-center text-sm font-medium bg-slate-900/50 py-3 rounded-lg border border-slate-700/50 max-w-sm mx-auto">
+                <span id="save-status" class="text-slate-500">Awaiting score updates...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Combine data structures exported from data.js
+        const allMatches = [
+            ...(typeof groupMatchData !== 'undefined' ? groupMatchData : []),
+            ...(typeof matchData !== 'undefined' ? matchData : [])
+        ];
+
+        let currentScores = {};
+        let activeMatch = null;
+        let p1Score = 0;
+        let p2Score = 0;
+        let raceTo = 5;
+
+        // Elements
+        const selector = document.getElementById('match-selector');
+        const dashboard = document.getElementById('match-dashboard');
+        const labelEl = document.getElementById('match-label');
+        const raceEl = document.getElementById('race-label');
+        const p1NameEl = document.getElementById('p1-name');
+        const p2NameEl = document.getElementById('p2-name');
+        const p1ScoreEl = document.getElementById('p1-score');
+        const p2ScoreEl = document.getElementById('p2-score');
+        const statusEl = document.getElementById('save-status');
+        const winnerBanner = document.getElementById('winner-banner');
+
+        const dateFilter = document.getElementById('date-filter');
+        const timeFilter = document.getElementById('time-filter');
+
+        // Extract and sort unique dates
+        const uniqueDates = [...new Set(allMatches.map(m => m.date || (m.time ? m.time.split(' ')[0] : '')))].filter(Boolean);
+        
+        // Populate Date Filter
+        uniqueDates.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = `Date: ${d}`;
+            dateFilter.appendChild(opt);
+        });
+
+        // Set Date to Today if available (e.g., "01-Apr")
+        const today = new Date();
+        const todayStr = String(today.getDate()).padStart(2, '0') + '-' + today.toLocaleString('en-US', {month: 'short'});
+        if(uniqueDates.includes(todayStr)) {
+            dateFilter.value = todayStr;
+        } else if(uniqueDates.length > 0) {
+            dateFilter.value = uniqueDates[0];
+        }
+
+        // Populate Times Dropdown based on Date
+        function populateTimes() {
+            timeFilter.innerHTML = '';
+            const selectedDate = dateFilter.value;
+            
+            const dateMatches = allMatches.filter(m => {
+                const mDate = m.date || (m.time ? m.time.split(' ')[0] : '');
+                return mDate === selectedDate;
+            });
+            
+            const uniqueTimes = [...new Set(dateMatches.map(m => m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || '')))].filter(Boolean);
+            uniqueTimes.sort(); // Sort times ascending
+            
+            if(uniqueTimes.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.textContent = "-- No scheduled times --";
+                timeFilter.appendChild(opt);
+            } else {
+                uniqueTimes.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = `Time: ${t}`;
+                    timeFilter.appendChild(opt);
+                });
+            }
+            
+            // Waterfall to matches dropdown
+            populateMatches();
+        }
+
+        // Initialize/Update Dropdown
+        function populateMatches() {
+            selector.innerHTML = '<option value="">-- Choose a Match to manage --</option>';
+            const selectedDate = dateFilter.value;
+            const selectedTime = timeFilter.value;
+            
+            const filteredMatches = allMatches.filter(m => {
+                const mDate = m.date || (m.time ? m.time.split(' ')[0] : '');
+                const mTime = m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || '');
+                return mDate === selectedDate && mTime === selectedTime;
+            });
+            
+            filteredMatches.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                
+                // Clean names (remove "A5 - " prefixes if present)
+                const p1Clean = m.p1.split(' - ').pop();
+                const p2Clean = m.p2.split(' - ').pop();
+                
+                // For group matches, list the table number for extra help
+                let label = m.round === "GRP" ? `Match ${m.id} (Table ${m.table || '?'})` : m.id;
+                label += ` | ${p1Clean} vs ${p2Clean}`;
+                opt.textContent = label;
+                selector.appendChild(opt);
+            });
+            
+            // Hide dashboard if changing dates/times clears the active match
+            if(activeMatch && !filteredMatches.find(m => m.id === activeMatch.id)) {
+                dashboard.classList.add('hidden');
+                activeMatch = null;
+                selector.value = "";
+            }
+        }
+
+        dateFilter.addEventListener('change', populateTimes);
+        timeFilter.addEventListener('change', populateMatches);
+        
+        populateTimes();
+
+        // Load existing scores from backend
+        async function loadExistingScores() {
+            try {
+                const res = await fetch('/api/scores');
+                if (res.ok) {
+                    currentScores = await res.json();
+                }
+            } catch(err) {
+                console.error("Failed to fetch initial scores", err);
+            }
+        }
+
+        // On Match Selection
+        selector.addEventListener('change', (e) => {
+            const mId = e.target.value;
+            if(!mId) {
+                dashboard.classList.add('hidden');
+                activeMatch = null;
+                return;
+            }
+
+            activeMatch = allMatches.find(m => m.id === mId);
+            if(!activeMatch) return;
+
+            // Determine Race To
+            if(activeMatch.round === "GRP") raceTo = 5;
+            else if(activeMatch.id.startsWith('F')) raceTo = 9;
+            else raceTo = 7; // Knockouts (R32, R16, QTR, SF)
+
+            // Find current stored score
+            p1Score = 0;
+            p2Score = 0;
+            if(currentScores[mId] && currentScores[mId].score) {
+                const parts = currentScores[mId].score.split('-');
+                if(parts.length === 2) {
+                    p1Score = parseInt(parts[0]) || 0;
+                    p2Score = parseInt(parts[1]) || 0;
+                }
+            }
+
+            // Update UI
+            p1NameEl.textContent = activeMatch.p1.split(' - ').pop();
+            p2NameEl.textContent = activeMatch.p2.split(' - ').pop();
+            labelEl.textContent = activeMatch.round === "GRP" ? `Group Stage - Match ${activeMatch.id}` : `Knockout - ${activeMatch.id}`;
+            raceEl.textContent = `Race to ${raceTo}`;
+            
+            refreshUI();
+            dashboard.classList.remove('hidden');
+        });
+
+        function changeScore(playerNum, delta) {
+            if(!activeMatch) return;
+
+            if(playerNum === 1) {
+                p1Score = Math.max(0, p1Score + delta);
+            } else {
+                p2Score = Math.max(0, p2Score + delta);
+            }
+
+            refreshUI();
+
+            // Auto-check for winner
+            let declaredWinner = null;
+            if(p1Score >= raceTo) declaredWinner = p1NameEl.textContent;
+            else if(p2Score >= raceTo) declaredWinner = p2NameEl.textContent;
+
+            pushScoreUpdate(declaredWinner);
+        }
+
+        function refreshUI() {
+            p1ScoreEl.textContent = p1Score;
+            p2ScoreEl.textContent = p2Score;
+            
+            if (p1Score >= raceTo || p2Score >= raceTo) {
+                winnerBanner.classList.remove('hidden');
+                p1ScoreEl.classList.toggle('text-white', p1Score >= raceTo);
+                p2ScoreEl.classList.toggle('text-white', p2Score >= raceTo);
+            } else {
+                winnerBanner.classList.add('hidden');
+                p1ScoreEl.classList.remove('text-white');
+                p2ScoreEl.classList.remove('text-white');
+            }
+        }
+
+        // Push to Cloudflare Worker
+        let saveTimeout = null;
+        async function pushScoreUpdate(winnerName = null) {
+            if(!activeMatch) return;
+            
+            const scoreStr = p1Score + "-" + p2Score;
+            const finalWinner = winnerName || '';
+
+            statusEl.textContent = "Saving to scoreboard...";
+            statusEl.className = "text-yellow-400 font-semibold animate-pulse";
+
+            // Debounce or directly save: we can afford to save directly for live feel
+            try {
+                const resp = await fetch(`/api/scores/${activeMatch.id}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ score: scoreStr, winner: finalWinner })
+                });
+
+                if(resp.ok) {
+                    statusEl.textContent = "Live Update Successful ✓";
+                    statusEl.className = "text-emerald-500 font-bold";
+                    
+                    // Update local cache so we don't lose it if we switch matches
+                    currentScores[activeMatch.id] = { score: scoreStr, winner: finalWinner };
+
+                    // Fade back out the success message logically
+                    if(saveTimeout) clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(() => {
+                        if(statusEl.textContent.includes("Successful")) {
+                            statusEl.className = "text-slate-500 transition-colors";
+                        }
+                    }, 3000);
+
+                } else {
+                    throw new Error("HTTP Status " + resp.status);
+                }
+            } catch(err) {
+                console.error("Failed to update schedule:", err);
+                statusEl.textContent = "Save Failed! Trying again automatically...";
+                statusEl.className = "text-red-500 font-bold";
+            }
+        }
+
+        // Initialize Data
+        loadExistingScores();
+    </script>
+</body>
+</html>

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8 Ball Association Cup 2026 - Match Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            /* slate-900 */
+            color: #f8fafc;
+            /* slate-50 */
+        }
+
+        /* Custom scrollbar for the bracket container */
+        .bracket-scroll::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+
+        .bracket-scroll::-webkit-scrollbar-track {
+            background: #1e293b;
+            /* slate-800 */
+            border-radius: 4px;
+        }
+
+        .bracket-scroll::-webkit-scrollbar-thumb {
+            background: #10b981;
+            /* emerald-500 */
+            border-radius: 4px;
+        }
+
+        .bracket-scroll::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+            /* emerald-600 */
+        }
+
+        /* Connecting lines styling */
+        path.connector {
+            fill: none;
+            stroke: #334155;
+            /* slate-700 */
+            stroke-width: 2;
+            transition: stroke 0.3s ease, stroke-width 0.3s ease;
+        }
+
+        path.connector.highlight {
+            stroke: #10b981;
+            /* emerald-500 */
+            stroke-width: 3;
+            z-index: 10;
+        }
+
+        path.connector.dim {
+            stroke: #0f172a;
+            opacity: 0.2;
+        }
+
+        /* Match Card Hover States */
+        .match-card {
+            transition: all 0.2s ease;
+        }
+
+        .match-card.highlight {
+            border-color: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+            transform: scale(1.02);
+        }
+
+        .match-card.dim {
+            opacity: 0.3;
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 767px) {
+            .mobile-tab-section:not(.active) {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-20 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-slate-900 font-bold text-xl shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                        8
+                    </div>
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white uppercase">8 Ball
+                            Association Cup</h1>
+                        <p class="text-sm sm:text-base text-emerald-400 font-medium tracking-wide">1-8 April 2026 • Maldives Pool Billiard
+                            Association</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <a href="/matchadmin.html" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 sm:px-4 py-2 rounded-lg border border-slate-600 hover:border-emerald-500/50 transition-all text-xs sm:text-sm font-semibold shadow-sm group">
+                        <svg class="w-4 h-4 text-emerald-500 group-hover:rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span class="hidden sm:inline">Match Admin</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col">
+
+        <!-- Mobile Tabs -->
+        <nav class="bg-slate-900 border-b border-slate-800 sticky top-[96px] z-20 md:hidden" id="mobile-tabs">
+            <div class="flex">
+                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500 transition-colors" data-target="scores-section">Scores</button>
+                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="schedule-section">Schedule</button>
+                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="standings-section">Standings</button>
+                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="bracket-section">Bracket</button>
+                <button class="tab-btn flex-1 py-3 px-1 sm:px-2 text-[10px] sm:text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors" data-target="rules-section">Rules</button>
+            </div>
+        </nav>
+
+        <!-- Live Scores Section -->
+        <section id="scores-section" class="mobile-tab-section active max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full border-t border-slate-800">
+            <h2 class="text-xl font-semibold mb-6 text-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Live Match Scores
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] sm:text-xs font-black uppercase text-emerald-400 tracking-widest" id="live-indicator">LIVE RECORD</span>
+                </div>
+            </h2>
+
+            <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Filter by Date</label>
+                    <select id="scores-date-filter" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Filter by Session Time</label>
+                    <select id="scores-time-filter" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div id="scores-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Score Cards populated here -->
+                <div class="col-span-full text-center text-slate-500 py-8 font-medium">Loading matches...</div>
+            </div>
+        </section>
+
+        <!-- Player Schedule Lookup Section -->
+        <section id="schedule-section" class="mobile-tab-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full border-t border-slate-800">
+            <div class="bg-slate-800/40 border border-slate-700 rounded-xl p-4 sm:p-6 relative overflow-hidden shadow-lg">
+                <!-- Background Decoration -->
+                <div
+                    class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none transform translate-x-4 -translate-y-4">
+                    <svg class="w-48 h-48 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
+                    </svg>
+                </div>
+
+                <h2 class="text-xl font-semibold mb-4 text-slate-200 flex items-center gap-2 relative z-10">
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                    </svg>
+                    Player Schedule Lookup
+                </h2>
+
+                <div class="max-w-md mb-6 relative z-10">
+                    <label for="playerSearch" class="block text-sm font-medium text-slate-400 mb-2">Search or select a
+                        player's name</label>
+                    <input list="player-list" id="playerSearch" placeholder="e.g. A5 - Ali Fayaz..."
+                        class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all shadow-sm">
+                    <datalist id="player-list"></datalist>
+                </div>
+
+                <div id="player-matches-container" class="hidden relative z-10">
+                    <h3 class="text-lg font-medium text-slate-200 mb-3 border-b border-slate-700 pb-2">Matches for <span
+                            id="selected-player-name" class="text-emerald-400 font-bold"></span></h3>
+                    <div class="rounded-lg border border-slate-700 overflow-hidden">
+                        <div class="hidden md:grid grid-cols-[0.8fr_1.5fr_0.8fr_2fr_0.8fr_1.5fr] text-sm md:text-xs text-slate-400 uppercase bg-slate-900 border-b border-slate-700 font-semibold px-4 py-3 gap-2">
+                            <div>Match #</div>
+                            <div>Date & Time</div>
+                            <div>Table</div>
+                            <div>Opponent</div>
+                            <div>Round</div>
+                            <div>Score</div>
+                        </div>
+                        <div id="player-matches-body" class="divide-y divide-slate-700/50 bg-slate-800/30">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                <div id="no-player-selected" class="text-slate-500 italic py-2 relative z-10">
+                    Select a player to view their scheduled matches.
+                </div>
+            </div>
+        </section>
+
+        <!-- Group Standings Section -->
+        <section id="standings-section" class="mobile-tab-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full border-t border-slate-800">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-slate-200 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                    Group Standings
+                </h2>
+                <select id="group-filter" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 leading-tight text-white text-sm font-medium focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm cursor-pointer hover:bg-slate-800 transition-colors">
+                    <option value="A">Group A</option>
+                    <option value="B">Group B</option>
+                    <option value="C">Group C</option>
+                    <option value="D">Group D</option>
+                    <option value="E">Group E</option>
+                    <option value="F">Group F</option>
+                    <option value="G">Group G</option>
+                    <option value="H">Group H</option>
+                    <option value="I">Group I</option>
+                    <option value="J">Group J</option>
+                    <option value="K">Group K</option>
+                    <option value="L">Group L</option>
+                    <option value="M">Group M</option>
+                    <option value="N">Group N</option>
+                    <option value="O">Group O</option>
+                    <option value="P">Group P</option>
+                </select>
+            </div>
+            <div id="group-standings-container" class="grid grid-cols-1">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Bracket Section -->
+        <section id="bracket-section" class="mobile-tab-section flex-grow flex flex-col relative w-full bg-slate-900 border-t border-slate-800">
+            <div
+                class="px-4 sm:px-6 lg:px-8 py-4 bg-slate-800/30 flex justify-between items-center border-b border-slate-800">
+                <h2 class="text-lg font-semibold text-slate-200">Knockout Match Flow</h2>
+                <span class="text-xs text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">Hover
+                    over matches to highlight paths</span>
+            </div>
+
+            <!-- Bracket Scroll Container -->
+            <div class="bracket-scroll overflow-x-auto overflow-y-auto flex-grow relative p-4 sm:p-8 h-[600px] sm:h-[800px]"
+                id="bracket-container">
+                <!-- SVG Canvas for drawing connecting lines -->
+                <svg id="lines-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
+
+                <!-- Columns Container -->
+                <div class="flex gap-8 sm:gap-16 min-w-max relative z-10" id="rounds-container">
+                    <!-- Rounds will be injected here via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Rules & Info Section -->
+        <section id="rules-section" class="mobile-tab-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+            <h2 class="text-xl font-semibold mb-4 text-slate-300 flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                Tournament Rules Overview
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Rule 1 -->
+                <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <h3 class="text-emerald-400 font-semibold mb-1">Format & Scoring</h3>
+                    <p class="text-sm text-slate-400">WPA 8-Ball Rules apply. Winner break format. Group matches: Win =
+                        3pts, Loss = 0pts. Tie-breaker is Head-to-Head result.</p>
+                </div>
+                <!-- Rule 2 -->
+                <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <h3 class="text-emerald-400 font-semibold mb-1">Match Length</h3>
+                    <p class="text-sm text-slate-400">Group Stage: <span class="text-white font-medium">Race to
+                            5</span><br>Knockouts to SF: <span class="text-white font-medium">Race to 7</span><br>Final
+                        Match: <span class="text-white font-medium">Race to 9</span></p>
+                </div>
+                <!-- Rule 3 -->
+                <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <h3 class="text-emerald-400 font-semibold mb-1">Shot Clock</h3>
+                    <p class="text-sm text-slate-400">A strict shot clock will be introduced and utilized starting from
+                        the <span class="text-white font-medium">Semi-Final</span> matches onwards.</p>
+                </div>
+                <!-- Rule 4 -->
+                <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <h3 class="text-emerald-400 font-semibold mb-1">Dress Code & Punctuality</h3>
+                    <p class="text-sm text-slate-400">Polo/shirt, tailored trousers & shoes required. <br>5 mins late =
+                        Forfeit 2 frames. <br>10 mins late = Match forfeited.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/data.js"></script>
+    <script>
+        
+
+        // ### LIVE SCORES LOGIC ###
+        const scoresDateFilter = document.getElementById('scores-date-filter');
+        const scoresTimeFilter = document.getElementById('scores-time-filter');
+        const scoresGrid = document.getElementById('scores-grid');
+        const liveIndicator = document.getElementById('live-indicator');
+        let publicScoresCache = {};
+
+        const allMatchesCombo = [
+            ...(typeof groupMatchData !== 'undefined' ? groupMatchData : []),
+            ...(typeof matchData !== 'undefined' ? matchData : [])
+        ];
+
+        const scoreUniqueDates = [...new Set(allMatchesCombo.map(m => m.date || (m.time ? m.time.split(' ')[0] : '')))].filter(Boolean);
+        scoreUniqueDates.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d; opt.textContent = `Date: ${d}`;
+            scoresDateFilter.appendChild(opt);
+        });
+
+        // Set Date to Today if available
+        const localTodayStr = String(new Date().getDate()).padStart(2, '0') + '-' + new Date().toLocaleString('en-US', {month: 'short'});
+        if (scoreUniqueDates.includes(localTodayStr)) {
+            scoresDateFilter.value = localTodayStr;
+        } else if (scoreUniqueDates.length > 0) {
+            scoresDateFilter.value = scoreUniqueDates[0];
+        }
+
+        function populateScoresTimes() {
+            scoresTimeFilter.innerHTML = '';
+            const selectedDate = scoresDateFilter.value;
+            const dateMatches = allMatchesCombo.filter(m => (m.date || (m.time ? m.time.split(' ')[0] : '')) === selectedDate);
+            const uTimes = [...new Set(dateMatches.map(m => m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || '')))].filter(Boolean);
+            uTimes.sort();
+
+            if (uTimes.length === 0) {
+                scoresTimeFilter.innerHTML = '<option value="">-- No scheduled times --</option>';
+            } else {
+                uTimes.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t; opt.textContent = `Time: ${t}`;
+                    scoresTimeFilter.appendChild(opt);
+                });
+                
+                // Attempt to auto-select nearest upcoming/current operational hour
+                const currentHour = new Date().getHours();
+                const currentMins = currentHour * 60 + new Date().getMinutes();
+                const matchedTime = uTimes.find(t => {
+                    const [h, m] = t.split(':').map(Number);
+                    return (h * 60 + m) >= currentMins;
+                }) || uTimes[0];
+                scoresTimeFilter.value = matchedTime;
+            }
+            renderScores();
+        }
+
+        async function fetchLiveScores() {
+            try {
+                const res = await fetch('/api/scores');
+                if (res.ok) {
+                    publicScoresCache = await res.json();
+                    renderScores();
+                    // Flash indicator green to visually assure user it is live checking
+                    liveIndicator.classList.add('text-white', 'bg-emerald-500', 'px-2', 'py-1', 'rounded');
+                    setTimeout(() => liveIndicator.classList.remove('text-white', 'bg-emerald-500', 'px-2', 'py-1', 'rounded'), 1000);
+                }
+            } catch(e) { console.error('Background fetch scores error:', e); }
+        }
+
+        function renderScores() {
+            scoresGrid.innerHTML = '';
+            const sDate = scoresDateFilter.value;
+            const sTime = scoresTimeFilter.value;
+
+            const filtered = allMatchesCombo.filter(m => {
+                const md = m.date || (m.time ? m.time.split(' ')[0] : '');
+                const mt = m.time && m.time.includes(' ') ? m.time.split(' ')[1] : (m.time || '');
+                return md === sDate && mt === sTime;
+            });
+
+            if (filtered.length === 0) {
+                scoresGrid.innerHTML = '<div class="col-span-full text-center text-slate-500 py-8 font-medium italic">No scheduled matches dynamically found for this session.</div>';
+                return;
+            }
+
+            filtered.forEach(m => {
+                const p1Clean = m.p1.split(' - ').pop();
+                const p2Clean = m.p2.split(' - ').pop();
+                let p1Score = "0"; let p2Score = "0"; let winner = null;
+
+                if (publicScoresCache[m.id]) {
+                    const sc = publicScoresCache[m.id];
+                    const parts = sc.score.split('-');
+                    if(parts.length === 2 && parts[0] && parts[1]) { 
+                        p1Score = parts[0]; p2Score = parts[1]; 
+                    }
+                    winner = sc.winner;
+                }
+                
+                const p1Win = winner === p1Clean ? 'text-emerald-400 font-bold' : 'text-slate-200';
+                const p2Win = winner === p2Clean ? 'text-emerald-400 font-bold' : 'text-slate-200';
+                const cardBorder = winner ? 'border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-slate-800' : 'border-slate-700 bg-slate-800/60';
+
+                const html = `
+                    <div class="rounded-xl border ${cardBorder} p-4 sm:p-5 relative transition-all">
+                        ${winner ? '<div class="absolute -top-3 right-4 bg-emerald-500 text-slate-900 text-[10px] font-black uppercase px-2 py-1 rounded shadow-lg border border-emerald-400">Finished</div>' : ''}
+                        <div class="text-[10px] sm:text-xs text-slate-400 mb-3 tracking-widest uppercase font-semibold border-b border-slate-700/50 pb-2 flex justify-between">
+                            <span class="text-emerald-400 font-bold">M ${m.id}</span>
+                            <span>${m.round === 'GRP' ? `Table ${m.table || '?'}` : 'Knockout'}</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="${p1Win} truncate pr-2 flex-1 font-medium text-sm">${p1Clean}</span>
+                            <span class="text-2xl font-black ${p1Win} font-mono w-8 text-right drop-shadow-md">${p1Score}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="${p2Win} truncate pr-2 flex-1 font-medium text-sm">${p2Clean}</span>
+                            <span class="text-2xl font-black ${p2Win} font-mono w-8 text-right drop-shadow-md">${p2Score}</span>
+                        </div>
+                    </div>
+                `;
+                scoresGrid.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        scoresDateFilter.addEventListener('change', populateScoresTimes);
+        scoresTimeFilter.addEventListener('change', renderScores);
+
+        // Bootstrap the Live Scores section immediately
+        populateScoresTimes();
+        fetchLiveScores();
+        // Set a 30 second interval fetching updates implicitly
+        setInterval(fetchLiveScores, 30000);
+
+        // Initialize Player Dropdown Logic
+        const datalist = document.getElementById('player-list');
+        const searchInput = document.getElementById('playerSearch');
+        const containerObj = document.getElementById('player-matches-container');
+        const noSelectMsg = document.getElementById('no-player-selected');
+        const matchBody = document.getElementById('player-matches-body');
+        const playerNameDisplay = document.getElementById('selected-player-name');
+
+        // Populate Datalist
+        allFormattedPlayers.forEach(player => {
+            const option = document.createElement('option');
+            option.value = player;
+            datalist.appendChild(option);
+        });
+
+        // Handle Player Selection
+        searchInput.addEventListener('input', (e) => {
+            const selectedPlayer = e.target.value.trim();
+
+            if (allFormattedPlayers.includes(selectedPlayer) || selectedPlayer !== "") {
+                const matches = groupMatchData.filter(m => m.p1 === selectedPlayer || m.p2 === selectedPlayer);
+
+                if (matches.length > 0) {
+                    playerNameDisplay.textContent = selectedPlayer;
+                    matchBody.innerHTML = '';
+
+                    matches.forEach(m => {
+                        const opponent = m.p1 === selectedPlayer ? m.p2 : m.p1;
+                        
+                        let matchScore = "-";
+                        let isFinished = false;
+                        let playerWon = false;
+                        
+                        // Tap into the globally fetched scoreboard
+                        if (publicScoresCache[m.id]) {
+                            const sc = publicScoresCache[m.id];
+                            matchScore = sc.score;
+                            if (sc.winner) {
+                                isFinished = true;
+                                const selectedClean = selectedPlayer.split(' - ').pop();
+                                playerWon = sc.winner === selectedClean;
+                            }
+                        }
+
+                        let rowBg = "hover:bg-slate-700/50";
+                        let scoreHtml = `<span class="text-slate-500">-</span>`;
+                        let statusBadge = "";
+
+                        if (isFinished) {
+                            if (playerWon) {
+                                rowBg = "bg-emerald-900/30 border-l-[3px] border-emerald-500 hover:bg-emerald-900/40";
+                                scoreHtml = `<span class="font-mono text-emerald-400 font-bold drop-shadow-sm">${matchScore}</span>`;
+                                statusBadge = `<span class="bg-emerald-500 text-slate-900 text-[10px] font-black uppercase px-2 py-0.5 rounded shadow ml-2 border border-emerald-400">WON</span>`;
+                            } else {
+                                rowBg = "bg-red-900/20 border-l-[3px] border-red-500 hover:bg-red-900/30";
+                                scoreHtml = `<span class="font-mono text-slate-400 font-bold drop-shadow-sm">${matchScore}</span>`;
+                                statusBadge = `<span class="bg-red-500 text-slate-900 text-[10px] font-black uppercase px-2 py-0.5 rounded shadow ml-2 border border-red-400">LOST</span>`;
+                            }
+                        } else if (matchScore !== "-") {
+                            scoreHtml = `<span class="font-mono text-emerald-400 font-bold drop-shadow-sm">${matchScore}</span>`;
+                        }
+
+                        const row = document.createElement('div');
+                        row.className = `${rowBg} transition-all p-4 md:px-4 md:py-3 flex flex-col md:grid md:grid-cols-[0.8fr_1.5fr_0.8fr_2fr_0.8fr_1.5fr] gap-2 md:gap-4 md:items-center text-sm md:text-sm text-slate-300`;
+                        row.innerHTML = `
+                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Match #</span> <span class="font-medium text-emerald-400">#${m.id}</span></div>
+                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Date & Time</span> <span>${m.date} - ${m.time}</span></div>
+                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Table</span> <span>Table ${m.table}</span></div>
+                            <div class="flex justify-between md:block items-center"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Opponent</span> <span class="font-medium text-white">${opponent}</span></div>
+                            <div class="flex justify-between md:block items-center mt-2 md:mt-0 pt-2 md:pt-0 border-t border-slate-700/50 md:border-0"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Round</span> <span><span class="bg-slate-700 text-xs px-2 py-1 rounded text-white">${m.round}</span></span></div>
+                            <div class="flex justify-between md:block items-center md:mt-0 pt-2 md:pt-0 border-t border-slate-700/50 md:border-0"><span class="md:hidden text-slate-400 text-xs font-semibold uppercase">Score</span> <div class="flex items-center">${scoreHtml}${statusBadge}</div></div>
+                        `;
+                        matchBody.appendChild(row);
+                    });
+
+                    containerObj.classList.remove('hidden');
+                    noSelectMsg.classList.add('hidden');
+                } else if (allFormattedPlayers.includes(selectedPlayer)) {
+                    // Player exists in roster but matches aren't in the parsed sample
+                    playerNameDisplay.textContent = selectedPlayer;
+                    matchBody.innerHTML = `<div class="px-4 py-6 text-center text-slate-400 italic">Match schedule for ${selectedPlayer} occurs in later stages or is pending upload.</div>`;
+                    containerObj.classList.remove('hidden');
+                    noSelectMsg.classList.add('hidden');
+                } else {
+                    containerObj.classList.add('hidden');
+                    noSelectMsg.classList.remove('hidden');
+                    noSelectMsg.textContent = "Player not found. Please select from the list.";
+                }
+            } else {
+                containerObj.classList.add('hidden');
+                noSelectMsg.classList.remove('hidden');
+                noSelectMsg.textContent = "Select a player to view their scheduled matches.";
+            }
+        });
+
+        const roundNames = {
+            1: "Round of 32",
+            2: "Round of 16",
+            3: "Quarter-Finals",
+            4: "Semi-Finals",
+            5: "Grand Final"
+        };
+
+        const container = document.getElementById('rounds-container');
+        const svgCanvas = document.getElementById('lines-canvas');
+        const scrollContainer = document.getElementById('bracket-container');
+
+        // Organize matches by round
+        const rounds = {};
+        matchData.forEach(match => {
+            if (!rounds[match.round]) rounds[match.round] = [];
+            rounds[match.round].push(match);
+        });
+
+        // Render HTML for the bracket columns and match cards
+        Object.keys(rounds).sort().forEach(r => {
+            const roundMatches = rounds[r];
+
+            const col = document.createElement('div');
+            col.className = 'flex flex-col justify-around gap-6 min-w-[260px] relative';
+
+            // Round Header
+            const header = document.createElement('div');
+            header.className = 'text-center uppercase tracking-widest text-xs font-bold text-slate-400 mb-4 absolute -top-8 w-full';
+            header.innerText = roundNames[r];
+            col.appendChild(header);
+
+            roundMatches.forEach(match => {
+                const card = document.createElement('div');
+                card.className = 'match-card relative bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-md cursor-pointer select-none';
+                card.id = `match-${match.id}`;
+                card.dataset.id = match.id;
+                card.dataset.next = match.next || '';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-emerald-500 bg-emerald-900/30 px-2 py-0.5 rounded">${match.id}</span>
+                        <div class="text-[10px] text-slate-400 text-right">
+                            <div class="font-medium">${match.time}</div>
+                            <div>Race to ${match.race}</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between items-center bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800">
+                            <span class="text-sm font-medium text-slate-300 truncate pr-2" title="${match.p1}">${match.p1}</span>
+                            <span class="w-3 h-3 rounded-full bg-slate-700 flex-shrink-0"></span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900 px-2.5 py-1.5 rounded border border-slate-800">
+                            <span class="text-sm font-medium text-slate-300 truncate pr-2" title="${match.p2}">${match.p2}</span>
+                            <span class="w-3 h-3 rounded-full bg-slate-700 flex-shrink-0"></span>
+                        </div>
+                    </div>
+                `;
+                col.appendChild(card);
+            });
+            container.appendChild(col);
+        });
+
+        // Mapping to easily find ancestors for hover highlighting
+        const matchMap = {};
+        matchData.forEach(m => {
+            matchMap[m.id] = m;
+            m.prev = [];
+        });
+        matchData.forEach(m => {
+            if (m.next && matchMap[m.next]) {
+                matchMap[m.next].prev.push(m.id);
+            }
+        });
+
+        // Function to draw SVG connecting lines
+        function drawLines() {
+            svgCanvas.innerHTML = ''; // Clear existing
+
+            // Wait for layout calculation
+            const containerRect = scrollContainer.getBoundingClientRect();
+
+            matchData.forEach(match => {
+                if (!match.next) return;
+
+                const el1 = document.getElementById(`match-${match.id}`);
+                const el2 = document.getElementById(`match-${match.next}`);
+
+                if (!el1 || !el2) return;
+
+                const r1 = el1.getBoundingClientRect();
+                const r2 = el2.getBoundingClientRect();
+
+                // Calculate coordinates relative to the scroll container's internal content
+                const startX = r1.right - containerRect.left + scrollContainer.scrollLeft;
+                const startY = r1.top + (r1.height / 2) - containerRect.top + scrollContainer.scrollTop;
+
+                const endX = r2.left - containerRect.left + scrollContainer.scrollLeft;
+                const endY = r2.top + (r2.height / 2) - containerRect.top + scrollContainer.scrollTop;
+
+                // Create curved bezier path
+                const midX = startX + (endX - startX) / 2;
+                const pathData = `M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('class', `connector path-${match.id} path-to-${match.next}`);
+                path.dataset.source = match.id;
+                path.dataset.target = match.next;
+
+                svgCanvas.appendChild(path);
+            });
+        }
+
+        // Draw lines initially and on window resize
+        window.addEventListener('load', () => setTimeout(drawLines, 100));
+        window.addEventListener('resize', drawLines);
+
+        // Setup ResizeObserver to catch any layout shifts
+        const resizeObserver = new ResizeObserver(() => drawLines());
+        resizeObserver.observe(container);
+
+        // Interaction Logic: Highlight Match lineage
+        function highlightPath(matchId) {
+            if (!matchId) return;
+
+            const toHighlight = new Set();
+
+            // Build tree of ancestors and descendants
+            function traverseUp(id) {
+                if (!id) return;
+                toHighlight.add(id);
+                const match = matchMap[id];
+                if (match && match.prev) match.prev.forEach(traverseUp);
+            }
+            function traverseDown(id) {
+                if (!id) return;
+                toHighlight.add(id);
+                const match = matchMap[id];
+                if (match && match.next) traverseDown(match.next);
+            }
+
+            traverseUp(matchId);
+            traverseDown(matchId);
+
+            // Apply classes to cards
+            document.querySelectorAll('.match-card').forEach(card => {
+                if (toHighlight.has(card.dataset.id)) {
+                    card.classList.add('highlight');
+                    card.classList.remove('dim');
+                } else {
+                    card.classList.add('dim');
+                    card.classList.remove('highlight');
+                }
+            });
+
+            // Apply classes to SVG paths
+            document.querySelectorAll('.connector').forEach(path => {
+                if (toHighlight.has(path.dataset.source) && toHighlight.has(path.dataset.target)) {
+                    path.classList.add('highlight');
+                    path.classList.remove('dim');
+                } else {
+                    path.classList.add('dim');
+                    path.classList.remove('highlight');
+                }
+            });
+        }
+
+        function resetHighlight() {
+            document.querySelectorAll('.match-card').forEach(card => {
+                card.classList.remove('highlight', 'dim');
+            });
+            document.querySelectorAll('.connector').forEach(path => {
+                path.classList.remove('highlight', 'dim');
+            });
+        }
+
+        // Attach event listeners to cards
+        container.addEventListener('mouseover', (e) => {
+            const card = e.target.closest('.match-card');
+            if (card) {
+                highlightPath(card.dataset.id);
+            }
+        });
+
+        container.addEventListener('mouseout', (e) => {
+            const card = e.target.closest('.match-card');
+            if (card) {
+                resetHighlight();
+            }
+        });
+
+        // --- FETCH SCORES AND UPDATE UI ---
+        async function fetchAndUpdateScores() {
+            try {
+                const response = await fetch('/api/scores');
+                const scores = await response.json();
+                
+                // Update match cards (knockout)
+                document.querySelectorAll('.match-card').forEach(card => {
+                    const id = card.dataset.id;
+                    if (scores[id]) {
+                        const infoDiv = card.querySelector('.text-\\[10px\\] > div:nth-child(2)');
+                        if (infoDiv) infoDiv.innerHTML = `<span class="text-emerald-400 font-bold text-xs font-mono tracking-wider">${scores[id].score}</span>`;
+                        
+                        const winName = scores[id].winner;
+                        if (winName) {
+                            card.querySelectorAll('span.text-sm').forEach(span => {
+                                const spanText = span.innerText.trim();
+                                const winNameTrimmed = winName.trim();
+                                if (spanText === winNameTrimmed || spanText === rawToFormatted[winNameTrimmed]) {
+                                    span.classList.add('text-emerald-400', 'font-bold');
+                                    span.classList.remove('text-slate-300');
+                                    span.nextElementSibling.classList.replace('bg-slate-700', 'bg-emerald-500');
+                                } else {
+                                    span.classList.add('text-slate-500');
+                                    span.classList.remove('text-slate-300');
+                                }
+                            });
+                        }
+                    }
+                });
+
+                // Process Group Standings
+                window.currentScores = scores;
+                calculateGroupStandings(scores);
+            } catch (err) {
+                console.error('Failed to fetch scores:', err);
+            }
+        }
+
+        function calculateGroupStandings(scores) {
+            const groups = {};
+            // Initialize groups A to P
+            for (let i = 0; i < 16; i++) {
+                groups[String.fromCharCode(65 + i)] = [];
+            }
+            
+            // Initialize players mapped by formatted name
+            const playerStats = {};
+            Object.entries(playerGroupIDs).forEach(([name, id]) => {
+                const group = id.charAt(0);
+                const formattedName = `${id} - ${name}`;
+                playerStats[formattedName] = { name: formattedName, group: group, id: id, pts: 0, mp: 0, w: 0, fw: 0, fl: 0, fd: 0 };
+            });
+
+            // Process scores via groupMatchData
+            groupMatchData.forEach(match => {
+                if (scores[match.id]) {
+                    const matchScore = scores[match.id].score; // e.g., "5-3"
+                    const winnerName = scores[match.id].winner; 
+                    
+                    if(winnerName) {
+                        let formattedWinner = winnerName.trim();
+                        // Normalise to formatted name if needed
+                        if (rawToFormatted[formattedWinner]) {
+                            formattedWinner = rawToFormatted[formattedWinner];
+                        }
+
+                        if (matchScore && matchScore.includes('-')) {
+                            const parts = matchScore.split('-').map(Number);
+                            if(parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                                const high = Math.max(parts[0], parts[1]);
+                                const low = Math.min(parts[0], parts[1]);
+                                
+                                const isP1Winner = formattedWinner === match.p1;
+                                const isP2Winner = formattedWinner === match.p2;
+
+                                if (isP1Winner || isP2Winner) {
+                                    const p1Stats = playerStats[match.p1];
+                                    const p2Stats = playerStats[match.p2];
+
+                                    if (p1Stats && p2Stats) {
+                                        p1Stats.mp++;
+                                        p2Stats.mp++;
+
+                                        if (isP1Winner) {
+                                            p1Stats.pts += 3;
+                                            p1Stats.w++;
+                                            p1Stats.fw += high;
+                                            p1Stats.fl += low;
+                                            p2Stats.fw += low;
+                                            p2Stats.fl += high;
+                                        } else {
+                                            p2Stats.pts += 3;
+                                            p2Stats.w++;
+                                            p2Stats.fw += high;
+                                            p2Stats.fl += low;
+                                            p1Stats.fw += low;
+                                            p1Stats.fl += high;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Calculate FD, L and assign to groups
+            Object.values(playerStats).forEach(p => {
+                p.l = p.mp - p.w;
+                p.fd = p.fw - p.fl;
+                if (groups[p.group]) {
+                    groups[p.group].push(p);
+                }
+            });
+
+            // Sort and Render
+            const container = document.getElementById('group-standings-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const activeGroup = document.getElementById('group-filter')?.value || 'A';
+            const groupName = activeGroup;
+
+            if (groups[groupName]) {
+                const groupPlayers = groups[groupName];
+                // Sort by Points descending, then FD descending
+                groupPlayers.sort((a, b) => {
+                    if (b.pts !== a.pts) return b.pts - a.pts;
+                    return b.fd - a.fd;
+                });
+
+                let rowsHtml = '';
+                groupPlayers.forEach((p, idx) => {
+                    const isAdvancing = idx < 2; // Top 2 advance
+                    const rowClass = isAdvancing ? 'bg-emerald-900/10 border-l-2 border-emerald-500' : 'border-l-2 border-transparent';
+                    const nameParts = p.name.split(' - ');
+                    const displayName = nameParts.length > 1 ? nameParts[1] : p.name;
+                    rowsHtml += `
+                        <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 ${rowClass}">
+                            <td class="px-2 py-2 text-center text-xs text-slate-400">${idx + 1}</td>
+                            <td class="px-2 py-2 text-xs font-medium ${isAdvancing ? 'text-emerald-400' : 'text-slate-300'} truncate max-w-[100px] sm:max-w-none" title="${displayName}">${displayName}</td>
+                            <td class="px-2 py-2 text-center text-xs text-slate-400">${p.mp}</td>
+                            <td class="px-2 py-2 text-center text-xs text-slate-400">${p.w}</td>
+                            <td class="px-2 py-2 text-center text-xs text-slate-400">${p.l}</td>
+                            <td class="px-2 py-2 text-center text-xs text-emerald-500 font-medium">${p.fw}</td>
+                            <td class="px-2 py-2 text-center text-xs text-red-500">${p.fl}</td>
+                            <td class="px-2 py-2 text-center text-xs ${p.fd > 0 ? 'text-emerald-400' : p.fd < 0 ? 'text-red-400' : 'text-slate-400'}">${p.fd > 0 ? '+' : ''}${p.fd}</td>
+                            <td class="px-2 py-2 text-center text-xs font-bold text-white bg-slate-800/50">${p.pts}</td>
+                        </tr>
+                    `;
+                });
+
+                const tableHtml = `
+                    <div class="bg-slate-800/40 border border-slate-700 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
+                        <div class="bg-slate-800 px-3 py-2 border-b border-slate-700 flex justify-between items-center hidden md:flex">
+                            <h3 class="font-bold text-sm text-slate-200">Group ${groupName}</h3>
+                        </div>
+                        <div class="overflow-x-auto flex-grow">
+                            <table class="w-full text-left border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr class="bg-slate-900/50 border-b border-slate-700 text-slate-400 text-[10px] uppercase tracking-wider">
+                                        <th class="px-2 py-2 text-center font-semibold w-6">#</th>
+                                        <th class="px-2 py-2 font-semibold">Player</th>
+                                        <th class="px-2 py-2 text-center font-semibold" title="Total Matches Played">P</th>
+                                        <th class="px-2 py-2 text-center font-semibold" title="Total Matches Won">W</th>
+                                        <th class="px-2 py-2 text-center font-semibold" title="Total Matches Lost">L</th>
+                                        <th class="px-2 py-2 text-center font-semibold" title="Total Frames Won">FW</th>
+                                        <th class="px-2 py-2 text-center font-semibold" title="Total Frames Lost">FL</th>
+                                        <th class="px-2 py-2 text-center font-semibold" title="Frame Difference">FD</th>
+                                        <th class="px-2 py-2 text-center font-semibold" title="Total Points">PTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = tableHtml;
+            }
+        }
+
+        // Mobile Tab switching logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabSections = document.querySelectorAll('.mobile-tab-section');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => {
+                    b.classList.remove('text-emerald-400', 'border-emerald-500');
+                    b.classList.add('text-slate-400', 'border-transparent');
+                });
+                btn.classList.add('text-emerald-400', 'border-emerald-500');
+                btn.classList.remove('text-slate-400', 'border-transparent');
+
+                const targetId = btn.dataset.target;
+                tabSections.forEach(sec => {
+                    if (sec.id === targetId) sec.classList.add('active');
+                    else sec.classList.remove('active');
+                });
+                
+                // If bracket tab is clicked, redraw lines to fix off-screen calculations
+                if(targetId === 'bracket-section' && window.drawLines) {
+                    setTimeout(window.drawLines, 50);
+                }
+            });
+        });
+
+        // Group Standings Dropdown Logic
+        const groupFilter = document.getElementById('group-filter');
+        if (groupFilter) {
+            groupFilter.addEventListener('change', () => {
+                if (window.currentScores) {
+                    calculateGroupStandings(window.currentScores);
+                }
+            });
+        }
+
+        window.addEventListener('load', fetchAndUpdateScores);
+        // Refresh every 30 seconds
+        setInterval(fetchAndUpdateScores, 30000);
+
+    </script>
+</body>
+
+</html>
