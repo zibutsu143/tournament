@@ -579,7 +579,23 @@
                     return r1 === playerClean || r2 === playerClean;
                 });
 
-                const matches = [...groupMatches, ...knockoutMatches];
+                // Determine if all group matches for this player's group are finished
+                let groupFinished = false;
+                const groupId = typeof playerGroupIDs !== 'undefined' ? playerGroupIDs[playerClean] : null;
+                if (groupId) {
+                    const groupLetter = groupId.charAt(0);
+                    const allGroupMatches = (typeof groupMatchData !== 'undefined' ? groupMatchData : [])
+                        .filter(m => m.p1.startsWith(groupLetter) && m.p2.startsWith(groupLetter));
+                    
+                    if (allGroupMatches.length > 0) {
+                        groupFinished = allGroupMatches.every(m => publicScoresCache[m.id] && publicScoresCache[m.id].winner);
+                    }
+                }
+
+                let matches = [...groupMatches];
+                if (groupFinished && knockoutMatches.length > 0) {
+                    matches = [...matches, ...knockoutMatches];
+                }
 
                 if (matches.length > 0) {
                     playerNameDisplay.textContent = selectedPlayer;
